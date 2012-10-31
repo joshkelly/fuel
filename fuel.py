@@ -5,6 +5,9 @@ import json
 vdat = 'vehicles.dat'
 vehicles = []
 
+rdat = 'records.dat'
+records = []
+
 def load_vehicles():
     if len(vehicles) == 0:
         f=0
@@ -116,9 +119,37 @@ def manage_vehicles():
     else:
         menu()
 
-def add():
-    print 'Add Record'
-    menu()
+def load_records():
+    if len(records) == 0:
+        f=0
+        try:
+            with open(rdat) as f: 
+                f.close
+        except IOError as e:
+            print e
+            f = open(rdat, 'w')
+            f.close()
+            
+        f = open(rdat)
+        for line in f:
+            records.append(json.loads(line))
+
+    print (records)
+
+def save_records():
+    f = open(rdat, 'w')
+    for v in records:
+        s = json.dumps(v)
+        f.write(s+'\n')
+    f.close()
+
+def add_record():
+    record = {'date':'', 'litres':'', 'ppl':'', 'trip':'', 'odo':'', 'reg':'','gallons':'', 'mpg':''}
+    print 'Add Record:'
+    record['date'] = raw_input('Date (yyy/mm/dd):')
+    records.append(record)
+    save_records()
+
 
 def summary():
     print 'Summary'
@@ -134,7 +165,7 @@ def menu():
     option = int(raw_input('Option? :'))
 
     if option == 1:
-        add()
+        add_record()
     elif option == 2:
         summary()
     elif option == 9:
@@ -145,10 +176,12 @@ def menu():
         menu()
 
 '''
+load record data
 load vehicle data
 show main menu
 '''
 def main():
+    load_records()
     load_vehicles()
     menu() 
 
