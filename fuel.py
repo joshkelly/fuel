@@ -9,21 +9,6 @@ vehicles = []
 rdat = 'records.dat'
 records = []
 
-def load_vehicles():
-    if len(vehicles) == 0:
-        f=0
-        try:
-            with open(vdat) as f: 
-                f.close
-        except IOError as e:
-            print e
-            f = open(vdat, 'w')
-            f.close()
-            
-        f = open(vdat)
-        for line in f:
-            vehicles.append(json.loads(line))
-
 def add_vehicle():
     vehicle = {'make':'', 'model':'', 'year':'', 'reg':''}
     print 'Add Vehicle:'
@@ -111,20 +96,20 @@ def manage_vehicles():
     else:
         menu()
 
-def load_records():
-    if len(records) == 0:
+def load(fname, data):
+    if len(data) == 0:
         f=0
         try:
-            with open(rdat) as f: 
+            with open(fname) as f: 
                 f.close
         except IOError as e:
             print e
-            f = open(rdat, 'w')
+            f = open(fname, 'w')
             f.close()
             
-        f = open(rdat)
+        f = open(fname)
         for line in f:
-            records.append(json.loads(line))
+            data.append(json.loads(line))
 
 def save(fname, data):
     f = open(fname, 'w')
@@ -213,10 +198,9 @@ load vehicle data
 show main menu
 '''
 def main():
-    load_records()
-    load_vehicles()
+    load(rdat, records)
+    load(vdat, vehicles)
     menu() 
-
 
 #call main
 main()
