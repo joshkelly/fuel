@@ -2,6 +2,7 @@
 
 import json
 
+conversion = 4.54609 # liters in an imperial gallon
 vdat = 'vehicles.dat'
 vehicles = []
 
@@ -22,8 +23,6 @@ def load_vehicles():
         f = open(vdat)
         for line in f:
             vehicles.append(json.loads(line))
-
-    print (vehicles)
 
 def save_vehicles():
     f = open(vdat, 'w')
@@ -134,8 +133,6 @@ def load_records():
         for line in f:
             records.append(json.loads(line))
 
-    print (records)
-
 def save_records():
     f = open(rdat, 'w')
     for v in records:
@@ -143,16 +140,58 @@ def save_records():
         f.write(s+'\n')
     f.close()
 
+def choose_vehicle():
+    num = 1
+    for v in vehicles:
+        print '{0}) {1}'.format(num, v['reg'])
+        num +=1
+
+    option = int(raw_input('Vehicle? :'))
+    return vehicles[option-1]['reg']
+
 def add_record():
-    record = {'date':'', 'litres':'', 'ppl':'', 'trip':'', 'odo':'', 'reg':'','gallons':'', 'mpg':''}
+    record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
     print 'Add Record:'
-    record['date'] = raw_input('Date (yyy/mm/dd):')
+    record['reg'] = choose_vehicle()
+    record['date'] = raw_input('Date (yyyy/mm/dd):')
+    record['litres'] = float(raw_input('Litres:'))
+    record['ppl'] = float(raw_input('Price per Litre:'))
+    record['trip'] = float(raw_input('Trip:'))
+    record['odo'] = int(raw_input('Odometer:'))
+    record['notes'] = raw_input('Notes:')
+    summarise(record, False)
+    print 'MPG: {0}'.format(record['mpg'])
     records.append(record)
     save_records()
+    menu()
 
+def summarise(record, save):
+    if not 'mpg' in record:
+        record['gallons'] = record['litres']/conversion
+        record['mpg'] = record['trip']/record['gallons']
+
+        if save:
+            save_records()
 
 def summary():
     print 'Summary'
+    reg = choose_vehicle()
+    avgMpg=0.0
+    lowMpg=float('inf')
+    highMpg=0.0
+    num=0 #number of mathing records
+    for record in records:
+        if record['reg'] == reg:
+            summarise(record, True)
+            num+=1
+            lowMpg=min(lowMpg, record['mpg'])
+            highMpg=max(highMpg, record['mpg'])
+            avgMpg += record['mpg']
+
+    avgMpg /= num
+
+    print 'Low {:.2f} mpg, Avg {:.2f} mpg, High {:.2f} mpg'.format(lowMpg, avgMpg, highMpg)
+
     menu()
 
 def menu():
