@@ -24,13 +24,6 @@ def load_vehicles():
         for line in f:
             vehicles.append(json.loads(line))
 
-def save_vehicles():
-    f = open(vdat, 'w')
-    for v in vehicles:
-        s = json.dumps(v)
-        f.write(s+'\n')
-    f.close()
-
 def add_vehicle():
     vehicle = {'make':'', 'model':'', 'year':'', 'reg':''}
     print 'Add Vehicle:'
@@ -39,7 +32,7 @@ def add_vehicle():
     vehicle['year'] = raw_input('Year:')
     vehicle['reg'] = raw_input('Reg. No.:')
     vehicles.append(vehicle)
-    save_vehicles()
+    save(vdat, vehicles)
 
 def modify_vehicle():
     print 'Modify Vehicle:'
@@ -66,7 +59,7 @@ def modify_vehicle():
         if e:
             vehicle['reg'] = e
 
-        save_vehicles()
+        save(vdat, vehicles)
         manage_vehicles()
 
 def list_vehicles():
@@ -89,7 +82,7 @@ def remove_vehicle():
         confirm = raw_input('Remove {0}? [y/n]:'.format(vehicle['reg'])).lower()
         if confirm == 'y':
             del vehicles[option-1]
-            save_vehicles()
+            save(vdat, vehicles)
         manage_vehicles()
 
 def manage_vehicles():
@@ -133,9 +126,9 @@ def load_records():
         for line in f:
             records.append(json.loads(line))
 
-def save_records():
-    f = open(rdat, 'w')
-    for v in records:
+def save(fname, data):
+    f = open(fname, 'w')
+    for v in data:
         s = json.dumps(v)
         f.write(s+'\n')
     f.close()
@@ -162,16 +155,16 @@ def add_record():
     summarise(record, False)
     print 'MPG: {0}'.format(record['mpg'])
     records.append(record)
-    save_records()
+    save(rdat, records)
     menu()
 
-def summarise(record, save):
+def summarise(record, doSave):
     if not 'mpg' in record:
         record['gallons'] = record['litres']/conversion
         record['mpg'] = record['trip']/record['gallons']
 
-        if save:
-            save_records()
+        if doSave:
+            save(rdat, records)
 
 def summary():
     print 'Summary'
