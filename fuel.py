@@ -152,23 +152,35 @@ def summarise(record, doSave):
             save(rdat, records)
 
 def summary():
-    print 'Summary'
     reg = choose_vehicle()
-    avgMpg=0.0
-    lowMpg=float('inf')
-    highMpg=0.0
-    num=0 #number of mathing records
+    mpg={'avg':0.0, 'low':float('inf'), 'high':0.0}
+    trip={'avg':0.0, 'low':float('inf'), 'high':0.0, 'total':0.0}
+    ppl={'avg':0.0, 'low':float('inf'), 'high':0.0}
+    print 'Summary for {0}:'.format(reg)
+
+    num=0 #number of matching records
     for record in records:
         if record['reg'] == reg:
             summarise(record, True)
             num+=1
-            lowMpg=min(lowMpg, record['mpg'])
-            highMpg=max(highMpg, record['mpg'])
-            avgMpg += record['mpg']
+            mpg['low']=min(mpg['low'], record['mpg'])
+            mpg['high']=max(mpg['high'], record['mpg'])
+            mpg['avg'] += record['mpg']
+            trip['low']=min(trip['low'], record['trip'])
+            trip['high']=max(trip['high'], record['trip'])
+            trip['total'] += record['trip']
+            ppl['low']=min(ppl['low'], record['ppl'])
+            ppl['high']=max(ppl['high'], record['ppl'])
+            ppl['avg'] += record['ppl']
 
-    avgMpg /= num
+    mpg['avg'] /= num
+    trip['avg'] = trip['total']/num
+    ppl['avg'] /= num
 
-    print 'Low {:.2f} mpg, Avg {:.2f} mpg, High {:.2f} mpg'.format(lowMpg, avgMpg, highMpg)
+    print 'Mpg  Low {:.2f}, Avg {:.2f}, High {:.2f}'.format(mpg['low'], mpg['avg'], mpg['high'])
+    print 'Trip Low {:.1f}, Avg {:.1f}, High {:.1f}'.format(trip['low'], trip['avg'], trip['high'])
+    print 'PPL  Low {:.3f}, Avg {:.3f}, High {:.3f}'.format(ppl['low'], ppl['avg'], ppl['high'])
+    print 'Total miles: {:.2f}'.format(trip['total'])
 
     menu()
 
