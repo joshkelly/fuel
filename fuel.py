@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
+from operator import itemgetter
 import json
 
-conversion = 4.54609 # liters in an imperial gallon
+ltr_gal_conv = 4.54609 # liters in an imperial gallon
 vdat = 'vehicles.dat'
 vehicles = []
 
@@ -11,6 +12,14 @@ records = []
 
 sdat = 'summaries.dat'
 summaries = []
+
+svg = ''' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="800" height="600">
+	<text x="300" y="25" text-anchor="middle" stroke="black" font-weight='normal'>Fuel Economy</text>
+	<line stroke="black" x1="50" y1="50" x2="50" y2="550"/>
+    {0}
+	<line stroke="black" x1="50" y1="550" x2="750" y2="550"/>
+</svg>
+'''
 
 def add_vehicle():
     vehicle = {'make':'', 'model':'', 'year':'', 'reg':'', 'ftc':0}
@@ -154,7 +163,7 @@ def add_record():
 
 def summarise(record, doSave):
     if not 'mpg' in record:
-        record['gallons'] = record['litres']/conversion
+        record['gallons'] = record['litres']/ltr_gal_conv
         record['mpg'] = record['trip']/record['gallons']
 
         if doSave:
@@ -210,16 +219,60 @@ def predict():
             sum_rec = s
             break
 
-    ftcg = vehicle['ftc'] / conversion
+    ftcg = vehicle['ftc'] / ltr_gal_conv
     prediction = sum_rec['mpg']['avg'] * ftcg
     print('{:.2f} miles'.format(prediction))
     menu()
+
+def svg_output():
+    reg = choose_vehicle()
+    vehicle = None
+    for v in vehicles:
+        if v['reg'] == reg:
+            vehicle = v
+            break
+
+    for s in summaries:
+        if s['reg'] == reg:
+            sum_rec = s
+            break
+
+    min_mpg = s['mpg']['low']
+    max_mpg = s['mpg']['high']
+    mpg_range = max_mpg - min_mpg
+
+    # extract records for this vehicle, store in temporary
+    recs = []
+    num = 0
+    for r in records:
+        if r['reg'] == reg:
+            recs.append(r)
+            num += 1
+    newlist = sorted(recs, key=itemgetter('date')) 
+    print(newlist)
+
+    inner_svg = ''
+
+    tick_dist = 700 / num
+    offset=50
+    for i in range(num):
+        print(i, num)
+        x = (i * tick_dist) + 50
+        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="black"/>\n'.format(x, 550, x, 575)
+        inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" stroke="black">{}</text>\n'.format(x, 575, recs[i]['date'])
+
+    print(inner_svg)
+    svg_fname = 'mpg.svg'
+    f = open(svg_fname, 'w')
+    f.write(svg.format(inner_svg)+'\n')
+    f.close()
 
 def menu():
     print('''\nFuel Economy
     1) Add Record
     2) Show Summary
     3) Predict
+    4) Graph
     9) Vehicles
     0) Quit
     ''')
@@ -231,6 +284,8 @@ def menu():
         summary()
     elif option == 3:
         predict()
+    elif option == 4:
+        svg_output()
     elif option == 9:
         manage_vehicles()
     elif option == 0:
