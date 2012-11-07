@@ -10,12 +10,13 @@ rdat = 'records.dat'
 records = []
 
 def add_vehicle():
-    vehicle = {'make':'', 'model':'', 'year':'', 'reg':''}
+    vehicle = {'make':'', 'model':'', 'year':'', 'reg':'', 'ftc':0}
     print 'Add Vehicle:'
     vehicle['make'] = raw_input('Make:')
     vehicle['model'] = raw_input('Model:')
     vehicle['year'] = raw_input('Year:')
     vehicle['reg'] = raw_input('Reg. No.:')
+    vehicle['ftc'] = raw_input('Fuel Tank Capacity (litres):')
     vehicles.append(vehicle)
     save(vdat, vehicles)
 
@@ -31,6 +32,8 @@ def modify_vehicle():
         manage_vehicles()
     else:
         vehicle = vehicles[option-1]
+        if not 'ftc' in vehicle:
+            vehicle['ftc']=0
         e= raw_input('Make ({0}):'.format(vehicle['make']))
         if e:
             vehicle['make'] = e
@@ -43,6 +46,9 @@ def modify_vehicle():
         e = raw_input('Reg. No. ({0}):'.format(vehicle['reg']))
         if e:
             vehicle['reg'] = e
+        e = raw_input('Fuel Tank Capacity ({0}):'.format(vehicle['ftc'] or 0))
+        if e:
+            vehicle['ftc'] = int(e)
 
         save(vdat, vehicles)
         manage_vehicles()
@@ -50,7 +56,7 @@ def modify_vehicle():
 def list_vehicles():
     print 'List Vehicle:'
     for v in vehicles:
-        print '{0} {1} {2} {3}'.format(v['year'], v['make'], v['model'], v['reg'])
+        print '{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg'], v['ftc'])
 
 def remove_vehicle():
     print 'Remove Vehicle:'
