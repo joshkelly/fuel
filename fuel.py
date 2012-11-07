@@ -9,6 +9,9 @@ vehicles = []
 rdat = 'records.dat'
 records = []
 
+sdat = 'summaries.dat'
+summaries = []
+
 def add_vehicle():
     vehicle = {'make':'', 'model':'', 'year':'', 'reg':'', 'ftc':0}
     print 'Add Vehicle:'
@@ -187,13 +190,36 @@ def summary():
     print 'Trip Low {:.1f}, Avg {:.1f}, High {:.1f}'.format(trip['low'], trip['avg'], trip['high'])
     print 'PPL  Low {:.3f}, Avg {:.3f}, High {:.3f}'.format(ppl['low'], ppl['avg'], ppl['high'])
     print 'Total miles: {:.2f}'.format(trip['total'])
+   
+    summaries.append({'mpg':mpg, 'trip':trip, 'ppl':ppl, 'reg':reg})
+    save(sdat, summaries)
+    menu()
 
+def predict():
+    reg = choose_vehicle()
+    print 'Prediction for {0}'.format(reg)
+    vehicle=None
+    sum_rec = None
+    for v in vehicles:
+        if v['reg'] == reg:
+            vehicle = v
+            break
+
+    for s in summaries:
+        if s['reg'] == reg:
+            sum_rec = s
+            break
+
+    ftcg = vehicle['ftc'] / conversion
+    prediction = sum_rec['mpg']['avg'] * ftcg
+    print '{:.2f} miles'.format(prediction)
     menu()
 
 def menu():
-    print '''Fuel Economy
+    print '''\nFuel Economy
     1) Add Record
     2) Show Summary
+    3) Predict
     9) Vehicles
     0) Quit
     '''
@@ -203,6 +229,8 @@ def menu():
         add_record()
     elif option == 2:
         summary()
+    elif option == 3:
+        predict()
     elif option == 9:
         manage_vehicles()
     elif option == 0:
@@ -218,6 +246,7 @@ show main menu
 def main():
     load(rdat, records)
     load(vdat, vehicles)
+    load(sdat, summaries)
     menu() 
 
 #call main
