@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import json
 
@@ -14,42 +14,42 @@ summaries = []
 
 def add_vehicle():
     vehicle = {'make':'', 'model':'', 'year':'', 'reg':'', 'ftc':0}
-    print 'Add Vehicle:'
-    vehicle['make'] = raw_input('Make:')
-    vehicle['model'] = raw_input('Model:')
-    vehicle['year'] = raw_input('Year:')
-    vehicle['reg'] = raw_input('Reg. No.:')
-    vehicle['ftc'] = raw_input('Fuel Tank Capacity (litres):')
+    print('Add Vehicle:')
+    vehicle['make'] = input('Make:')
+    vehicle['model'] = input('Model:')
+    vehicle['year'] = input('Year:')
+    vehicle['reg'] = input('Reg. No.:')
+    vehicle['ftc'] = input('Fuel Tank Capacity (litres):')
     vehicles.append(vehicle)
     save(vdat, vehicles)
 
 def modify_vehicle():
-    print 'Modify Vehicle:'
+    print('Modify Vehicle:')
     num = 1
     for v in vehicles:
-        print '{0}) {1}'.format(num, v['reg'])
+        print('{0}) {1}'.format(num, v['reg']))
         num +=1
-    print '0) Back'
-    option = int(raw_input('Option? :'))
+    print('0) Back')
+    option = int(input('Option? :'))
     if option == 0:
         manage_vehicles()
     else:
         vehicle = vehicles[option-1]
         if not 'ftc' in vehicle:
             vehicle['ftc']=0
-        e= raw_input('Make ({0}):'.format(vehicle['make']))
+        e= input('Make ({0}):'.format(vehicle['make']))
         if e:
             vehicle['make'] = e
-        e = raw_input('Model ({0}):'.format(vehicle['model']))
+        e = input('Model ({0}):'.format(vehicle['model']))
         if e:
             vehicle['model'] = e
-        e = raw_input('Year ({0}):'.format(vehicle['year']))
+        e = input('Year ({0}):'.format(vehicle['year']))
         if e:
             vehicle['year'] = e
-        e = raw_input('Reg. No. ({0}):'.format(vehicle['reg']))
+        e = input('Reg. No. ({0}):'.format(vehicle['reg']))
         if e:
             vehicle['reg'] = e
-        e = raw_input('Fuel Tank Capacity ({0}):'.format(vehicle['ftc'] or 0))
+        e = input('Fuel Tank Capacity ({0}):'.format(vehicle['ftc'] or 0))
         if e:
             vehicle['ftc'] = int(e)
 
@@ -57,37 +57,37 @@ def modify_vehicle():
         manage_vehicles()
 
 def list_vehicles():
-    print 'List Vehicle:'
+    print('List Vehicle:')
     for v in vehicles:
-        print '{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg'], v['ftc'])
+        print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg'], v['ftc']))
 
 def remove_vehicle():
-    print 'Remove Vehicle:'
+    print('Remove Vehicle:')
     num = 1
     for v in vehicles:
-        print '{0}) {1}'.format(num, v['reg'])
+        print('{0}) {1}'.format(num, v['reg']))
         num +=1
-    print '0) Back'
-    option = int(raw_input('Option? :'))
+    print('0) Back')
+    option = int(input('Option? :'))
     if option == 0:
         manage_vehicles()
     else:
         vehicle = vehicles[option-1]
-        confirm = raw_input('Remove {0}? [y/n]:'.format(vehicle['reg'])).lower()
+        confirm = input('Remove {0}? [y/n]:'.format(vehicle['reg'])).lower()
         if confirm == 'y':
             del vehicles[option-1]
             save(vdat, vehicles)
         manage_vehicles()
 
 def manage_vehicles():
-    print '''Vehicles:
+    print('''Vehicles:
     1) Add
     2) Modify
     3) Delete
     4) List
     0) Back
-    '''
-    option = int(raw_input('Option? :'))
+    ''')
+    option = int(input('Option? :'))
     if option == 0:
         menu()
     elif option == 1:
@@ -112,7 +112,7 @@ def load(fname, data):
             with open(fname) as f: 
                 f.close
         except IOError as e:
-            print e
+            print(e)
             f = open(fname, 'w')
             f.close()
             
@@ -130,24 +130,24 @@ def save(fname, data):
 def choose_vehicle():
     num = 1
     for v in vehicles:
-        print '{0}) {1}'.format(num, v['reg'])
+        print('{0}) {1}'.format(num, v['reg']))
         num +=1
 
-    option = int(raw_input('Vehicle? :'))
+    option = int(input('Vehicle? :'))
     return vehicles[option-1]['reg']
 
 def add_record():
     record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
-    print 'Add Record:'
+    print('Add Record:')
     record['reg'] = choose_vehicle()
-    record['date'] = raw_input('Date (yyyy/mm/dd):')
-    record['litres'] = float(raw_input('Litres:'))
-    record['ppl'] = float(raw_input('Price per Litre:'))
-    record['trip'] = float(raw_input('Trip:'))
-    record['odo'] = int(raw_input('Odometer:'))
-    record['notes'] = raw_input('Notes:')
+    record['date'] = input('Date (yyyy/mm/dd):')
+    record['litres'] = float(input('Litres:'))
+    record['ppl'] = float(input('Price per Litre:'))
+    record['trip'] = float(input('Trip:'))
+    record['odo'] = int(input('Odometer:'))
+    record['notes'] = input('Notes:')
     summarise(record, False)
-    print 'MPG: {0}'.format(record['mpg'])
+    print('MPG: {0}'.format(record['mpg']))
     records.append(record)
     save(rdat, records)
     menu()
@@ -165,7 +165,7 @@ def summary():
     mpg={'avg':0.0, 'low':float('inf'), 'high':0.0}
     trip={'avg':0.0, 'low':float('inf'), 'high':0.0, 'total':0.0}
     ppl={'avg':0.0, 'low':float('inf'), 'high':0.0}
-    print 'Summary for {0}:'.format(reg)
+    print('Summary for {0}:'.format(reg))
 
     num=0 #number of matching records
     for record in records:
@@ -186,10 +186,10 @@ def summary():
     trip['avg'] = trip['total']/num
     ppl['avg'] /= num
 
-    print 'Mpg  Low {:.2f}, Avg {:.2f}, High {:.2f}'.format(mpg['low'], mpg['avg'], mpg['high'])
-    print 'Trip Low {:.1f}, Avg {:.1f}, High {:.1f}'.format(trip['low'], trip['avg'], trip['high'])
-    print 'PPL  Low {:.3f}, Avg {:.3f}, High {:.3f}'.format(ppl['low'], ppl['avg'], ppl['high'])
-    print 'Total miles: {:.2f}'.format(trip['total'])
+    print('Mpg  Low {:.2f}, Avg {:.2f}, High {:.2f}'.format(mpg['low'], mpg['avg'], mpg['high']))
+    print('Trip Low {:.1f}, Avg {:.1f}, High {:.1f}'.format(trip['low'], trip['avg'], trip['high']))
+    print('PPL  Low {:.3f}, Avg {:.3f}, High {:.3f}'.format(ppl['low'], ppl['avg'], ppl['high']))
+    print('Total miles: {:.2f}'.format(trip['total']))
    
     summaries.append({'mpg':mpg, 'trip':trip, 'ppl':ppl, 'reg':reg})
     save(sdat, summaries)
@@ -197,7 +197,7 @@ def summary():
 
 def predict():
     reg = choose_vehicle()
-    print 'Prediction for {0}'.format(reg)
+    print('Prediction for {0}'.format(reg))
     vehicle=None
     sum_rec = None
     for v in vehicles:
@@ -212,18 +212,18 @@ def predict():
 
     ftcg = vehicle['ftc'] / conversion
     prediction = sum_rec['mpg']['avg'] * ftcg
-    print '{:.2f} miles'.format(prediction)
+    print('{:.2f} miles'.format(prediction))
     menu()
 
 def menu():
-    print '''\nFuel Economy
+    print('''\nFuel Economy
     1) Add Record
     2) Show Summary
     3) Predict
     9) Vehicles
     0) Quit
-    '''
-    option = int(raw_input('Option? :'))
+    ''')
+    option = int(input('Option? :'))
 
     if option == 1:
         add_record()
