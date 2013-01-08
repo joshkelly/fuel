@@ -149,11 +149,21 @@ def add_record():
     record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
     print('Add Record:')
     record['reg'] = choose_vehicle()
+
+    last = prev_record(record['reg'])
+
     record['date'] = input('Date (yyyy/mm/dd):')
     record['litres'] = float(input('Litres:'))
     record['ppl'] = float(input('Price per Litre:'))
-    record['trip'] = float(input('Trip:'))
     record['odo'] = int(input('Odometer:'))
+    #record['trip'] = float(input('Trip: ({0})'.format((record['odo'] - last['odo']))))
+    calc_trip = record['odo'] - last['odo']
+    trip = input('Trip: ({0})'.format(calc_trip))
+    if trip:
+        record['trip'] = float(trip)
+    else:
+        record['trip'] = calc_trip
+
     record['notes'] = input('Notes:')
     summarise(record, False)
     print('MPG: {0}'.format(record['mpg']))
@@ -168,6 +178,19 @@ def summarise(record, doSave):
 
         if doSave:
             save(rdat, records)
+
+def prev_record(reg):
+    curr = None
+    for record in records:
+        if record['reg'] == reg:
+            if curr == None:
+                curr = record
+            else:
+                if curr['date'] < record['date']:
+                    curr = record
+#            print('record date: {0} vs curr {1}'.format(record['date'], curr['date']))
+
+    return curr
 
 def summary():
     reg = choose_vehicle()
