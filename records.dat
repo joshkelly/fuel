@@ -1,0 +1,29 @@
+{"mpg": 35.75187906905994, "gallons": 7.230389191591015, "notes": "", "ppl": 1.359, "odo": 77904, "date": "2012/10/27", "litres": 32.87, "reg": "WK51ARF", "trip": 258.5}
+{"mpg": 45.32838507924941, "gallons": 12.074112039136928, "notes": "", "ppl": 1.389, "odo": 86914, "date": "2011/12/03", "litres": 54.89, "reg": "WR04BHL", "trip": 547.3}
+{"mpg": 40.01240262172284, "gallons": 10.57172207325416, "notes": "", "ppl": 1.389, "odo": 87338, "date": "2011/12/22", "litres": 48.06, "reg": "WR04BHL", "trip": 423.0}
+{"mpg": 47.47051118585432, "trip": 543.3, "gallons": 11.444999989001536, "notes": "", "ppl": 1.379, "odo": 87880, "date": "2011/12/31", "litres": 52.03, "reg": "WR04BHL"}
+{"mpg": 43.79703106, "gallons": 10.998462414954389, "notes": "Redex Diesel Cleaner \u00a315.99", "ppl": 1.399, "odo": 88362, "date": "2012/01/15", "litres": 50.0, "reg": "WR04BHL", "trip": 481.7}
+{"mpg": 42.99189251252307, "gallons": 8.343433587984398, "notes": "", "ppl": 1.399, "odo": 88721, "date": "2010/01/23", "litres": 37.93, "reg": "WR04BHL", "trip": 358.7}
+{"mpg": 42.64124467481836, "gallons": 12.412864681517522, "notes": "", "ppl": 1.397, "odo": 89250, "date": "2012/02/10", "litres": 56.43, "reg": "WR04BHL", "trip": 529.3}
+{"mpg": 41.78737103721572, "gallons": 12.767015171279054, "notes": "", "ppl": 1.437, "odo": 89784, "date": "2012/03/13", "litres": 58.04, "reg": "WR04BHL", "trip": 533.5}
+{"mpg": 49.577025317185694, "trip": 567.3, "gallons": 11.442800296518547, "notes": "", "ppl": 1.459, "odo": 90351, "date": "2012/03/31", "litres": 52.02, "reg": "WR04BHL"}
+{"mpg": 45.65218008415147, "trip": 572.8, "gallons": 12.547045922979967, "notes": "", "ppl": 1.479, "odo": 90924, "date": "2012/04/19", "litres": 57.04, "reg": "WR04BHL"}
+{"mpg": 54.02955366621683, "trip": 528.4, "gallons": 9.779832779377442, "notes": "", "ppl": 1.377, "odo": 91482, "date": "2012/05/25", "litres": 44.46, "reg": "WR04BHL"}
+{"mpg": 51.731936531498924, "trip": 628.6, "gallons": 12.151101276041608, "notes": "", "ppl": 1.379, "odo": 92081, "date": "2012/06/13", "litres": 55.24, "reg": "WR04BHL"}
+{"mpg": 54.277195910290246, "trip": 543.0, "gallons": 10.00420141264251, "notes": "", "ppl": 1.379, "odo": 92624, "date": "2012/06/17", "litres": 45.48, "reg": "WR04BHL"}
+{"mpg": 57.826711276745, "gallons": 12.542646538013985, "notes": "Wynns Injector Cleaner", "ppl": 1.369, "odo": 93349, "date": "2012/06/25", "litres": 57.02, "reg": "WR04BHL", "trip": 725.3}
+{"mpg": 58.857514777223464, "gallons": 12.786812403625973, "notes": "", "ppl": 1.369, "odo": 94102, "date": "2012/07/19", "litres": 58.13, "reg": "WR04BHL", "trip": 752.6}
+{"mpg": 56.039082149264445, "gallons": 12.261085900191153, "notes": "", "ppl": 1.379, "odo": 94789, "date": "2012/08/05", "litres": 55.74, "reg": "WR04BHL", "trip": 687.1}
+{"mpg": 57.63087286004808, "gallons": 11.898136640497658, "notes": "Wynns Injector Cleaner", "ppl": 1.409, "odo": 95474, "date": "2012/08/24", "litres": 54.09, "reg": "WR04BHL", "trip": 685.7}
+{"mpg": 53.83098682323414, "gallons": 12.269884670123115, "notes": "", "ppl": 1.439, "odo": 96135, "date": "2012/09/17", "litres": 55.78, "reg": "WR04BHL", "trip": 660.5}
+{"mpg": 52.852161972789126, "gallons": 12.93419179998636, "notes": "", "ppl": 1.449, "odo": 96818, "date": "2012/10/04", "litres": 58.8, "reg": "WR04BHL", "trip": 683.6}
+{"mpg": 54.841448178214094, "gallons": 11.651771082402679, "notes": "Tyres @ 33 psi", "ppl": 1.429, "odo": 97477, "date": "2012/10/19", "litres": 52.97, "reg": "WR04BHL", "trip": 639.0}
+{"mpg": 40.1887169406929, "trip": 301.1, "gallons": 7.49215259706693, "notes": "", "ppl": 1.349, "odo": 78205, "date": "2012/11/05", "litres": 34.06, "reg": "WK51ARF"}
+{"mpg": 50.849765734972216, "gallons": 13.063973656482823, "notes": "Tyres @ 30, reset to 33", "ppl": 1.399, "odo": 98122, "date": "2012/11/09", "litres": 59.39, "reg": "WR04BHL", "trip": 664.3}
+{"mpg": 36.54878900688864, "trip": 280.1, "gallons": 7.663728610740218, "notes": "", "ppl": 1.329, "odo": 78485, "date": "2012/11/19", "litres": 34.84, "reg": "WK51ARF"}
+{"mpg": 51.82542600000001, "gallons": 13.198154897945265, "notes": "Tyres set to 33 psi, were 31", "ppl": 1.389, "odo": 98806, "date": "2012/11/29", "litres": 60.0, "reg": "WR04BHL", "trip": 684.0}
+{"mpg": 36.66727668322296, "trip": 292.3, "gallons": 7.971685558358941, "notes": "Tyres set to 31 front, 30 rear, was 30 front 21 rear", "ppl": 1.309, "odo": 78778, "date": "2012/12/04", "litres": 36.24, "reg": "WK51ARF"}
+{"mpg": 49.770878153338835, "gallons": 13.341134909339672, "notes": "Tyre set to 33, was 32. Added Redex, next at 102,500", "ppl": 1.379, "odo": 99470, "date": "2012/12/17", "litres": 60.65, "reg": "WR04BHL", "trip": 664.0}
+{"mpg": 48.23876008308811, "trip": 613, "gallons": 12.707623474238302, "notes": "Added Redex. Tyres to 33 psi. OS/F @ 27", "ppl": 1.379, "odo": 100083, "date": "2013/01/08", "litres": 57.77, "reg": "WR04BHL"}
+{"mpg": 35.8827007108331, "gallons": 7.736318462678917, "notes": "", "ppl": 1.299, "odo": 79313, "date": "2013/01/08", "litres": 35.17, "reg": "WK51ARF", "trip": 277.6}
+{"mpg": 35.81091754601227, "gallons": 7.170997494550262, "notes": "", "trip": 256.8, "odo": 79570, "date": "2013/01/23", "litres": 32.6, "ppl": 1.319, "reg": "WK51ARF"}
