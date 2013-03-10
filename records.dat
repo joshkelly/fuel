@@ -30,4 +30,6 @@
 {"mpg": 51.36119522476824, "gallons": 12.575641925258848, "notes": "", "ppl": 1.399, "odo": 100729, "date": "2013/01/31", "litres": 57.17, "reg": "WR04BHL", "trip": 645.9}
 {"mpg": 35.51039390142022, "trip": 280.5, "gallons": 7.899095706420241, "notes": "", "ppl": 1.339, "odo": 79851, "date": "2013/02/06", "litres": 35.91, "reg": "WK51ARF"}
 {"mpg": 47.403930315047376, "gallons": 9.984404180295593, "notes": "", "ppl": 1.429, "odo": 101203, "date": "2013/02/14", "litres": 45.39, "reg": "WR04BHL", "trip": 473.3}
-{"mpg": 36.21484811121185, "gallons": 7.278782426216815, "notes": "", "trip": 263.6, "odo": 80114, "date": "2013/02/24", "litres": 33.09, "ppl": 1.399, "reg": "WK51ARF"}
+{"mpg": 36.21484811121185, "trip": 263.6, "gallons": 7.278782426216815, "notes": "", "ppl": 1.399, "odo": 80114, "date": "2013/02/24", "litres": 33.09, "reg": "WK51ARF"}
+{"mpg": 49.42718034337772, "gallons": 12.55584469291193, "notes": "tyres set to 33 psi, were 35", "ppl": 1.469, "odo": 101824, "date": "2013/03/05", "litres": 57.08, "reg": "WR04BHL", "trip": 620.6}
+{"mpg": 35.05766123518059, "gallons": 7.978284635807914, "notes": "tyres set to 30 psi front, 29 psi rear", "trip": 279.7, "odo": 80394, "date": "2013/03/09", "litres": 36.27, "ppl": 1.419, "reg": "WK51ARF"}
