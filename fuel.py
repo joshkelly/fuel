@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import datetime
 from operator import itemgetter
 import json
 
@@ -13,11 +14,12 @@ records = []
 sdat = 'summaries.dat'
 summaries = []
 
-svg = ''' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="800" height="600">
-	<text x="300" y="25" text-anchor="middle" stroke="black" font-weight='normal'>Fuel Economy</text>
-	<line stroke="black" x1="50" y1="50" x2="50" y2="550"/>
-    {0}
-	<line stroke="black" x1="50" y1="550" x2="750" y2="550"/>
+svg = '''
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="800" height="600">
+	<text x="400" y="25" text-anchor="middle" fill="black" stroke="none" font-weight='normal'>Fuel Economy for {0}</text>
+	<line stroke="black" x1="50" y1="550" x2="750" y2="550"/><!-- xaxis 700 wide-->
+	<line stroke="black" x1="50" y1="50"  x2="50"  y2="550"/><!-- yaxis 500 tall -->
+    {1}
 </svg>
 '''
 
@@ -260,35 +262,106 @@ def svg_output():
             sum_rec = s
             break
 
-    min_mpg = s['mpg']['low']
-    max_mpg = s['mpg']['high']
-    mpg_range = max_mpg - min_mpg
+    mpg_avg = 0#sum_rec['mpg']['avg']
+    print(mpg_avg)
+
 
     # extract records for this vehicle, store in temporary
     recs = []
     num = 0
+    dmin=999999999999
+    dmax=0
+    mpg_min = 9999
+    mpg_max = 0
+    drange = 0
     for r in records:
         if r['reg'] == reg:
+            d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
+            d = (d-datetime.datetime(1970,1,1)).total_seconds()
+            r['secs'] = d
+            if d > dmax:
+                dmax = d
+            if d < dmin:
+                dmin = d
+
+            mpg = r['mpg']
+            if mpg > mpg_max:
+                mpg_max = mpg
+            if mpg < mpg_min:
+                mpg_min = mpg
+
+            mpg_avg += mpg
+            
             recs.append(r)
             num += 1
-    newlist = sorted(recs, key=itemgetter('date')) 
-    print(newlist)
+
+    mpg_avg /= num
+    drange = dmax - dmin
+    mpg_range = mpg_max - mpg_min
+    newlist = sorted(recs, key=itemgetter('secs'))
+    #print(newlist)
 
     inner_svg = ''
 
     tick_dist = 700 / num
     offset=50
     for i in range(num):
-        print(i, num)
+        #print(i, num)
         x = (i * tick_dist) + 50
-        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="black"/>\n'.format(x, 550, x, 575)
-        inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" stroke="black">{}</text>\n'.format(x, 575, recs[i]['date'])
+        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(x, 550, x, 560)
+        #inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" stroke="black">{}</text>\n'.format(x, 575, recs[i]['date'])
 
-    print(inner_svg)
+    yscale = mpg_max
+    xscale = dmax
+
+    path = None
+    x=None
+    y=None
+    for r in newlist:
+        x=r['secs']
+        y=r['mpg']
+
+        # generate x coordinate
+        x = dmax - x
+        x /= drange
+        x *= 700
+        x = 700 -x
+        x += 50
+
+        # generate y coordinate
+        y = mpg_max - y
+        y /= mpg_range
+        y *= 500
+        y += 50
+
+        inner_svg += '<circle cx="{}" cy="{}" r="3" fill="black"/>'.format(x,y)
+
+        if path == None:
+            path = 'M{},{}'
+        else:
+            path += ' L{},{}'
+        path=path.format(x,y)
+
+        y -= 5
+        inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['mpg'])
+
+    inner_svg += '<path d="{}" fill="none" stroke="red" stroke-width="0.5"/>'.format(path)
+
+    # where does the average line go?
+    y = mpg_max - mpg_avg
+    y /= mpg_range
+    y *= 500
+    y += 50
+    inner_svg += '<line x1="50" y1="{0}" x2="750" y2="{0}" stroke="grey"/>\n'.format(y)
+    inner_svg += '<text x="45" y="{}" dominant-baseline="central" text-anchor="end" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(y,mpg_avg)
+
+
+    #print(inner_svg)
     svg_fname = 'mpg.svg'
     f = open(svg_fname, 'w')
-    f.write(svg.format(inner_svg)+'\n')
+    f.write(svg.format(reg, inner_svg)+'\n')
     f.close()
+    #menu()
 
 def menu():
     print('''\nFuel Economy
