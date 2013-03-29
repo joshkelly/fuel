@@ -357,11 +357,12 @@ def svg_output():
 
 
     #print(inner_svg)
-    svg_fname = 'mpg.svg'
+    svg_fname = 'mpg-{}.svg'.format(reg)
     f = open(svg_fname, 'w')
     f.write(svg.format(reg, inner_svg)+'\n')
     f.close()
-    #menu()
+    print('File at ',svg_fname)
+    menu()
 
 def menu():
     print('''\nFuel Economy
