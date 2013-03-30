@@ -23,7 +23,9 @@ svg = '''
 </svg>
 '''
 
-'''Add new vehicle record'''
+'''
+Add new vehicle record
+'''
 def add_vehicle():
     vehicle = {'make':'', 'model':'', 'year':'', 'reg':'', 'ftc':0}
     print('Add Vehicle:')
@@ -34,19 +36,22 @@ def add_vehicle():
     vehicle['ftc'] = input('Fuel Tank Capacity (litres):')
     vehicles.append(vehicle)
     save(vdat, vehicles)
+    manage_vehicles()
 
-'''Modify a vehicle record'''
+'''
+Modify a vehicle record
+'''
 def modify_vehicle():
     print('Modify Vehicle:')
     num = 1
+
     for v in vehicles:
         print('{0}) {1}'.format(num, v['reg']))
         num +=1
+
     print('0) Back')
     option = int(input('Option? :'))
-    if option == 0:
-        manage_vehicles()
-    else:
+    if option != 0:
         vehicle = vehicles[option-1]
         if not 'ftc' in vehicle:
             vehicle['ftc']=0
@@ -67,13 +72,21 @@ def modify_vehicle():
             vehicle['ftc'] = int(e)
 
         save(vdat, vehicles)
-        manage_vehicles()
 
+    manage_vehicles()
+
+'''
+List known vehicles
+'''
 def list_vehicles():
-    print('List Vehicle:')
+    print('List Vehicles:')
     for v in vehicles:
         print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg'], v['ftc']))
+    manage_vehicles()
 
+'''
+Remove vehicle from data
+'''
 def remove_vehicle():
     print('Remove Vehicle:')
     num = 1
@@ -81,43 +94,51 @@ def remove_vehicle():
         print('{0}) {1}'.format(num, v['reg']))
         num +=1
     print('0) Back')
-    option = int(input('Option? :'))
-    if option == 0:
-        manage_vehicles()
+    option = input('Option? :')
+
+    # check option is numeric
+    if option.isnumeric():
+        option = int(option)
     else:
+        remove_vehicle()
+
+    if option != 0:
         vehicle = vehicles[option-1]
-        confirm = input('Remove {0}? [y/n]:'.format(vehicle['reg'])).lower()
+        confirm = input('Remove {0}? [y/N]:'.format(vehicle['reg'])).lower()
         if confirm == 'y':
             del vehicles[option-1]
             save(vdat, vehicles)
-        manage_vehicles()
+    manage_vehicles()
 
+'''
+Manage vehicles sub-menu
+'''
 def manage_vehicles():
     print('''Vehicles:
-    1) Add
-    2) Modify
-    3) Delete
-    4) List
-    0) Back
+    A) Add
+    E) Edit
+    L) List
+    R) Remove
+    B) Back to Main Menu
     ''')
-    option = int(input('Option? :'))
-    if option == 0:
+    option = input('Option? :')[0].upper()
+
+    if option == 'B':
         menu()
-    elif option == 1:
+    elif option == 'A':
         add_vehicle()
-        manage_vehicles()
-    elif option == 2:
+    elif option == 'E':
         modify_vehicle()
-        manage_vehicles()
-    elif option == 3:
+    elif option == 'R':
         remove_vehicle()
-        manage_vehicles()
-    elif option == 4:
+    elif option == 'L':
         list_vehicles()
-        manage_vehicles()
     else:
         menu()
 
+'''
+Load data from file into collection
+'''
 def load(fname, data):
     if len(data) == 0:
         f=0
@@ -133,6 +154,9 @@ def load(fname, data):
         for line in f:
             data.append(json.loads(line))
 
+'''
+Save data to named file
+'''
 def save(fname, data):
     f = open(fname, 'w')
     for v in data:
