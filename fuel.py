@@ -201,40 +201,82 @@ def prev_record(reg):
 
     return curr
 
-def summary():
-    reg = choose_vehicle()
-    mpg={'avg':0.0, 'low':float('inf'), 'high':0.0}
-    trip={'avg':0.0, 'low':float('inf'), 'high':0.0, 'total':0.0}
-    ppl={'avg':0.0, 'low':float('inf'), 'high':0.0}
-    print('Summary for {0}:'.format(reg))
+'''
+Get summary record.
+If one exists in collection return that, else, generate a new one
+'''
+def get_summary(reg):
+    sum_rec = None
+    for s in summaries:
+        if s['reg'] == reg:
+            sum_rec = s
+            break
+
+    if sum_rec == None:
+        sum_rec = summary(reg)
+
+    return sum_rec
+
+'''
+Create/update summary records for a vehicle
+if no reg passed, prompt user to choose, calculate, save and display results
+if reg passed, calculate, save and return results
+'''
+def summary(r=None):
+    reg = None
+    if r == None:
+        reg = choose_vehicle()
+    else:
+        reg = r
+    mpg={'avg':0.0, 'min':float('inf'), 'max':0.0}
+    trip={'avg':0.0, 'min':float('inf'), 'max':0.0, 'total':0.0}
+    ppl={'avg':0.0, 'min':float('inf'), 'max':0.0}
+    sum_rec = None
+
+    for s in summaries:
+        if s['reg'] == reg:
+            sum_rec = s
+            break
 
     num=0 #number of matching records
     for record in records:
         if record['reg'] == reg:
             summarise(record, True)
             num+=1
-            mpg['low']=min(mpg['low'], record['mpg'])
-            mpg['high']=max(mpg['high'], record['mpg'])
+            mpg['min']=min(mpg['min'], record['mpg'])
+            mpg['max']=max(mpg['max'], record['mpg'])
             mpg['avg'] += record['mpg']
-            trip['low']=min(trip['low'], record['trip'])
-            trip['high']=max(trip['high'], record['trip'])
+            trip['min']=min(trip['min'], record['trip'])
+            trip['max']=max(trip['max'], record['trip'])
             trip['total'] += record['trip']
-            ppl['low']=min(ppl['low'], record['ppl'])
-            ppl['high']=max(ppl['high'], record['ppl'])
+            ppl['min']=min(ppl['min'], record['ppl'])
+            ppl['max']=max(ppl['max'], record['ppl'])
             ppl['avg'] += record['ppl']
 
     mpg['avg'] /= num
     trip['avg'] = trip['total']/num
     ppl['avg'] /= num
 
-    print('Mpg  Low {:.2f}, Avg {:.2f}, High {:.2f}'.format(mpg['low'], mpg['avg'], mpg['high']))
-    print('Trip Low {:.1f}, Avg {:.1f}, High {:.1f}'.format(trip['low'], trip['avg'], trip['high']))
-    print('PPL  Low {:.3f}, Avg {:.3f}, High {:.3f}'.format(ppl['low'], ppl['avg'], ppl['high']))
-    print('Total miles: {:.2f}'.format(trip['total']))
-   
-    summaries.append({'mpg':mpg, 'trip':trip, 'ppl':ppl, 'reg':reg})
+    if sum_rec != None:
+        sum_rec['mpg']=mpg
+        sum_rec['trip']=trip
+        sum_rec['ppl']=ppl
+    else:
+        sum_rec = {'mpg':mpg, 'trip':trip, 'ppl':ppl, 'reg':reg}
+        summaries.append(sum_rec)
+    
     save(sdat, summaries)
-    menu()
+
+    if r == None:
+        print('Summary for {0}:'.format(reg))
+        print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(mpg['min'], mpg['avg'], mpg['max']))
+        print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(trip['min'], trip['avg'], trip['max']))
+        print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(ppl['min'], ppl['avg'], ppl['max']))
+        print('Total miles: {:.2f}'.format(trip['total']))
+   
+        menu()
+    else:
+        return sum_rec
 
 def predict():
     reg = choose_vehicle()
@@ -245,11 +287,8 @@ def predict():
         if v['reg'] == reg:
             vehicle = v
             break
-
-    for s in summaries:
-        if s['reg'] == reg:
-            sum_rec = s
-            break
+        
+    sum_rec = get_summary(reg)
 
     ftcg = vehicle['ftc'] / ltr_gal_conv
     prediction = sum_rec['mpg']['avg'] * ftcg
@@ -259,27 +298,22 @@ def predict():
 def svg_output():
     reg = choose_vehicle()
     vehicle = None
+    sum_rec = None
     for v in vehicles:
         if v['reg'] == reg:
             vehicle = v
             break
 
-    for s in summaries:
-        if s['reg'] == reg:
-            sum_rec = s
-            break
-
-    mpg_avg = 0#sum_rec['mpg']['avg']
-    print(mpg_avg)
-
+    sum_rec = get_summary(reg)
+    mpg_avg = sum_rec['mpg']['avg']
+    mpg_max = sum_rec['mpg']['max']
+    mpg_min = sum_rec['mpg']['min']
 
     # extract records for this vehicle, store in temporary
     recs = []
     num = 0
     dmin=999999999999
     dmax=0
-    mpg_min = 9999
-    mpg_max = 0
     drange = 0
     for r in records:
         if r['reg'] == reg:
@@ -291,18 +325,9 @@ def svg_output():
             if d < dmin:
                 dmin = d
 
-            mpg = r['mpg']
-            if mpg > mpg_max:
-                mpg_max = mpg
-            if mpg < mpg_min:
-                mpg_min = mpg
-
-            mpg_avg += mpg
-            
             recs.append(r)
             num += 1
 
-    mpg_avg /= num
     drange = dmax - dmin
     mpg_range = mpg_max - mpg_min
     newlist = sorted(recs, key=itemgetter('secs'))
