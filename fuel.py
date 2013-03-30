@@ -23,6 +23,7 @@ svg = '''
 </svg>
 '''
 
+'''Add new vehicle record'''
 def add_vehicle():
     vehicle = {'make':'', 'model':'', 'year':'', 'reg':'', 'ftc':0}
     print('Add Vehicle:')
@@ -34,6 +35,7 @@ def add_vehicle():
     vehicles.append(vehicle)
     save(vdat, vehicles)
 
+'''Modify a vehicle record'''
 def modify_vehicle():
     print('Modify Vehicle:')
     num = 1
@@ -171,6 +173,11 @@ def add_record():
     print('MPG: {0}'.format(record['mpg']))
     records.append(record)
     save(rdat, records)
+    menu()
+
+def edit_record():
+    print('Edit Record:')
+    record['reg'] = choose_vehicle()
     menu()
 
 def summarise(record, doSave):
@@ -366,26 +373,29 @@ def svg_output():
 
 def menu():
     print('''\nFuel Economy
-    1) Add Record
-    2) Show Summary
-    3) Predict
-    4) Graph
-    9) Vehicles
-    0) Quit
+    A) Add Record
+    E) Edit Record
+    S) Show Summary
+    P) Predict
+    G) Graph
+    V) Vehicles
+    Q) Quit
     ''')
-    option = int(input('Option? :'))
+    option = input('Option? :')[0].upper()
 
-    if option == 1:
+    if option == 'A':
         add_record()
-    elif option == 2:
+    elif option == 'S':
         summary()
-    elif option == 3:
+    elif option == 'E':
+        edit_record()
+    elif option == 'P':
         predict()
-    elif option == 4:
+    elif option == 'G':
         svg_output()
-    elif option == 9:
+    elif option == 'V':
         manage_vehicles()
-    elif option == 0:
+    elif option == 'Q':
         exit()
     else:
         menu()
