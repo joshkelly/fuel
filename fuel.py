@@ -295,7 +295,7 @@ def predict():
     print('{:.2f} miles'.format(prediction))
     menu()
 
-def svg_output():
+def graph():
     reg = choose_vehicle()
     vehicle = None
     sum_rec = None
@@ -417,7 +417,7 @@ def menu():
     elif option == 'P':
         predict()
     elif option == 'G':
-        svg_output()
+        graph()
     elif option == 'V':
         manage_vehicles()
     elif option == 'Q':
