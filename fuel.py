@@ -140,6 +140,9 @@ def save(fname, data):
         f.write(s+'\n')
     f.close()
 
+'''
+Choose vehicle by reg
+'''
 def choose_vehicle():
     num = 1
     for v in vehicles:
@@ -149,18 +152,37 @@ def choose_vehicle():
     option = int(input('Vehicle? :'))
     return vehicles[option-1]['reg']
 
+'''
+Get vehicle record by registration
+If no vehicle with that reg, warn and call menu
+'''
+def get_vehicle(reg):
+    vehicle = None
+    for v in vehicles:
+        if v['reg'] == reg:
+            vehicle = v
+            break
+    if vehicle == None:
+        print('No vehicle with that registration [{}]'.format(reg))
+        menu()
+
+    return vehicle
+
+'''
+Add new record, save to records.dat
+'''
 def add_record():
     record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
-    print('Add Record:')
     record['reg'] = choose_vehicle()
 
-    last = prev_record(record['reg'])
+    # get previous recod, allows us to calculate trip
+    last = last_record(record['reg'])
 
+    print('Add Record for {}:'.format(record['reg']))
     record['date'] = input('Date (yyyy/mm/dd):')
     record['litres'] = float(input('Litres:'))
     record['ppl'] = float(input('Price per Litre:'))
     record['odo'] = int(input('Odometer:'))
-    #record['trip'] = float(input('Trip: ({0})'.format((record['odo'] - last['odo']))))
     calc_trip = record['odo'] - last['odo']
     trip = input('Trip: ({0})'.format(calc_trip))
     if trip:
@@ -169,18 +191,26 @@ def add_record():
         record['trip'] = calc_trip
 
     record['notes'] = input('Notes:')
-    summarise(record, False)
+    calc_mpg(record, False)
     print('MPG: {0}'.format(record['mpg']))
     records.append(record)
     save(rdat, records)
     menu()
 
+'''
+Edit chosen vehicle record.
+Choose vehicle, display records by date (10 at a time?), on choice, get new values, save
+'''
 def edit_record():
     print('Edit Record:')
     record['reg'] = choose_vehicle()
     menu()
 
-def summarise(record, doSave):
+'''
+Calculate MPG for record.
+If `doSave`, then udpate records file
+'''
+def calc_mpg(record, doSave):
     if not 'mpg' in record:
         record['gallons'] = record['litres']/ltr_gal_conv
         record['mpg'] = record['trip']/record['gallons']
@@ -188,7 +218,10 @@ def summarise(record, doSave):
         if doSave:
             save(rdat, records)
 
-def prev_record(reg):
+'''
+Get last record for this vehicle
+'''
+def last_record(reg):
     curr = None
     for record in records:
         if record['reg'] == reg:
@@ -197,7 +230,6 @@ def prev_record(reg):
             else:
                 if curr['date'] < record['date']:
                     curr = record
-#            print('record date: {0} vs curr {1}'.format(record['date'], curr['date']))
 
     return curr
 
@@ -241,7 +273,7 @@ def summary(r=None):
     num=0 #number of matching records
     for record in records:
         if record['reg'] == reg:
-            summarise(record, True)
+            calc_mpg(record, True)
             num+=1
             mpg['min']=min(mpg['min'], record['mpg'])
             mpg['max']=max(mpg['max'], record['mpg'])
@@ -278,16 +310,13 @@ def summary(r=None):
     else:
         return sum_rec
 
+'''
+Based on chosen vehicle's average MPG, calculate max distance travelable
+'''
 def predict():
     reg = choose_vehicle()
     print('Prediction for {0}'.format(reg))
-    vehicle=None
-    sum_rec = None
-    for v in vehicles:
-        if v['reg'] == reg:
-            vehicle = v
-            break
-        
+    vehicle = get_vehicle(reg)
     sum_rec = get_summary(reg)
 
     ftcg = vehicle['ftc'] / ltr_gal_conv
@@ -295,15 +324,13 @@ def predict():
     print('{:.2f} miles'.format(prediction))
     menu()
 
+'''
+For a vehicle, create an SVG graph showing the MPG over time.
+Include average MPG.
+'''
 def graph():
     reg = choose_vehicle()
-    vehicle = None
-    sum_rec = None
-    for v in vehicles:
-        if v['reg'] == reg:
-            vehicle = v
-            break
-
+    vehicle = get_vehicle(reg)
     sum_rec = get_summary(reg)
     mpg_avg = sum_rec['mpg']['avg']
     mpg_max = sum_rec['mpg']['max']
