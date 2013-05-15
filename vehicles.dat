@@ -1,2 +1,3 @@
-{"ftc": 63, "model": "156 1.9 JTD", "year": "2004", "reg": "WR04BHL", "make": "Alfa Romeo"}
-{"ftc": 40, "model": "Puma", "year": "2001", "make": "Ford", "reg": "WK51ARF"}
+{"ftc": 63, "reg": "WR04BHL", "model": "156 1.9 JTD", "make": "Alfa Romeo", "year": "2004"}
+{"ftc": 40, "reg": "WK51ARF", "model": "Puma", "make": "Ford", "year": "2001"}
+{"make": "Mazda", "reg": "K40RBT", "model": "MX-5", "ftc": 48, "year": "1999"}
