@@ -207,7 +207,9 @@ def add_record():
     record['litres'] = float(input('Litres:'))
     record['ppl'] = float(input('Price per Litre:'))
     record['odo'] = int(input('Odometer:'))
-    calc_trip = record['odo'] - last['odo']
+    calc_trip = 0
+    if last:
+        record['odo'] - last['odo']
     trip = input('Trip: ({0})'.format(calc_trip))
     if trip:
         record['trip'] = float(trip)
@@ -357,8 +359,13 @@ def graph():
     vehicle = get_vehicle(reg)
     sum_rec = get_summary(reg)
     mpg_avg = sum_rec['mpg']['avg']
-    mpg_max = sum_rec['mpg']['max']
-    mpg_min = sum_rec['mpg']['min']
+    #mpg_max = sum_rec['mpg']['max']
+    #mpg_min = sum_rec['mpg']['min']
+    mpg_min=99999999
+    mpg_max = 0
+
+    scalex = 400
+    scaley = 400
 
     # extract records for this vehicle, store in temporary
     recs = []
@@ -371,10 +378,11 @@ def graph():
             d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
             d = (d-datetime.datetime(1970,1,1)).total_seconds()
             r['secs'] = d
-            if d > dmax:
-                dmax = d
-            if d < dmin:
-                dmin = d
+            m = r['mpg']
+            dmax  =max(dmax, d)
+            dmin  =min(dmin, d)
+            mpg_max  =max(mpg_max, m)
+            mpg_min  =min(mpg_min, m)
 
             recs.append(r)
             num += 1
@@ -386,7 +394,7 @@ def graph():
 
     inner_svg = ''
 
-    tick_dist = 700 / num
+    tick_dist = scalex / num
     offset=50
     for i in range(num):
         #print(i, num)
@@ -407,36 +415,36 @@ def graph():
         # generate x coordinate
         x = dmax - x
         x /= drange
-        x *= 700
-        x = 700 -x
+        x *= scalex
+        x = scalex -x
         x += 50
 
         # generate y coordinate
         y = mpg_max - y
         y /= mpg_range
-        y *= 500
+        y *= scaley
         y += 50
 
-        inner_svg += '<circle cx="{}" cy="{}" r="3" fill="black"/>'.format(x,y)
+        inner_svg += '<circle cx="{:.2f}" cy="{:.2f}" r="3" fill="black"/>'.format(x,y)
 
         if path == None:
-            path = 'M{},{}'
+            path = 'M{:.2f},{:.2f}'
         else:
-            path += ' L{},{}'
+            path += ' L{:.2f},{:.2f}'
         path=path.format(x,y)
 
         y -= 5
-        inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['mpg'])
+        inner_svg += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['mpg'])
 
     inner_svg += '<path d="{}" fill="none" stroke="red" stroke-width="0.5"/>'.format(path)
 
     # where does the average line go?
     y = mpg_max - mpg_avg
     y /= mpg_range
-    y *= 500
+    y *= scaley
     y += 50
     inner_svg += '<line x1="50" y1="{0}" x2="750" y2="{0}" stroke="grey"/>\n'.format(y)
-    inner_svg += '<text x="45" y="{}" dominant-baseline="central" text-anchor="end" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(y,mpg_avg)
+    inner_svg += '<text x="45" y="{}" dominant-baseline="central" text-anchor="end" font-size="10" stroke="none" fill="blue">{:.2f}</text>'.format(y,mpg_avg)
 
 
     #print(inner_svg)
