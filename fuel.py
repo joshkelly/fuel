@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
-import datetime
+import getopt, sys, datetime, json
 from operator import itemgetter
-import json
 
+debug=False
 ltr_gal_conv = 4.54609 # liters in an imperial gallon
 vdat = 'vehicles.dat'
 vehicles = []
@@ -158,11 +158,14 @@ def load(fname, data):
 Save data to named file
 '''
 def save(fname, data):
-    f = open(fname, 'w')
-    for v in data:
-        s = json.dumps(v)
-        f.write(s+'\n')
-    f.close()
+    if debug:
+        print('#### DEBUG MODE, DATA NOT SAVED ####')
+    else:
+        f = open(fname, 'w')
+        for v in data:
+            s = json.dumps(v)
+            f.write(s+'\n')
+        f.close()
 
 '''
 Choose vehicle by reg
@@ -209,7 +212,7 @@ def add_record():
     record['odo'] = int(input('Odometer:'))
     calc_trip = 0
     if last:
-        record['odo'] - last['odo']
+        calc_trip = record['odo'] - last['odo']
     trip = input('Trip: ({0})'.format(calc_trip))
     if trip:
         record['trip'] = float(trip)
@@ -484,16 +487,39 @@ def menu():
     else:
         menu()
 
+def usage():
+    print('hello')
+
 '''
 load record data
 load vehicle data
 show main menu
 '''
 def main():
+    global debug
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hd", ["help", "debug"])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print(err) # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
+
+
+    for o,a in opts:
+        if o in ("-d", "--debug"):
+            debug=True
+        else:
+            assert False, "unhandled option"
+
+    if debug:
+        print('#### DEBUG MODE ####')
+
     load(rdat, records)
     load(vdat, vehicles)
     load(sdat, summaries)
     menu() 
 
 #call main
-main()
+if __name__ == "__main__":
+    main()
