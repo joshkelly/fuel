@@ -41,7 +41,7 @@ def add_vehicle():
 '''
 Modify a vehicle record
 '''
-def modify_vehicle():
+def edit_vehicle():
     print('Modify Vehicle:')
     num = 1
 
@@ -128,7 +128,7 @@ def manage_vehicles():
     elif option == 'A':
         add_vehicle()
     elif option == 'E':
-        modify_vehicle()
+        edit_vehicle()
     elif option == 'R':
         remove_vehicle()
     elif option == 'L':
@@ -175,9 +175,17 @@ def choose_vehicle():
     for v in vehicles:
         print('{0}) {1}'.format(num, v['reg']))
         num +=1
+    print('0) Back')
 
     option = int(input('Vehicle? :'))
-    return vehicles[option-1]['reg']
+
+    # go ahead if option in range, else, re-build menu
+    if option == 0:
+        menu()
+    elif (option > 0 and option <= len(vehicles)):
+        return vehicles[option-1]['reg']
+    else:
+        choose_vehicle()
 
 '''
 Get vehicle record by registration
@@ -200,17 +208,81 @@ Add new record, save to records.dat
 '''
 def add_record():
     record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
-    record['reg'] = choose_vehicle()
+    reg = choose_vehicle()
+    print('\nAdd Record for {}:'.format(record['reg']))
+    update_record(reg)
 
-    # get previous recod, allows us to calculate trip
-    last = last_record(record['reg'])
+'''
+Get vehicle record.
+Choose vehicle, display records by date (10 at a time?), on choice, get new values, save
+'''
+def choose_record():
+    reg = choose_vehicle()
+    print('\nEdit Record for {}:'.format(reg))
+    # get date-sorted list of records for the selected vehicle
+    recs = get_records(reg)
 
-    print('Add Record for {}:'.format(record['reg']))
-    record['date'] = input('Date (yyyy/mm/dd):')
-    record['litres'] = float(input('Litres:'))
-    record['ppl'] = float(input('Price per Litre:'))
-    record['odo'] = int(input('Odometer:'))
-    calc_trip = 0
+    num=1
+    print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
+    for r in recs:
+        print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, r['date'], r['odo'], r['trip'], r['litres'], r['mpg']))
+        num = num +1
+    print('0) Back')
+
+    option = input('Record? :')
+
+    try:
+        option = int(option)
+        # go ahead if option in range, else, re-build menu
+        if option == 0:
+            menu()
+        elif (option > 0 and option <= len(recs)):
+            update_record(reg, recs[option-1])
+        else:
+            choose_record()
+    except Exception as err:
+        print('Bad Value passed to menu')
+        print(err)
+        choose_record()
+
+'''
+Create or update a fuel record
+'''
+def update_record(reg=None, rec=None):
+    record = {'date':'yyyy/mm/dd', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
+    last = None
+    isNew = True
+
+    # did they pass us a vehicle?
+    if (reg == None):
+        reg = choose_vehicle()
+       
+    # are we adding a new one or updating an old one?
+    if (rec == None):
+        # adding new, so get the previous value.
+        last = last_record(reg)
+        rec = record
+    else:
+        record = rec
+        isNew = False
+
+    value = input('Date ({}):'.format(record['date']))
+    if value:
+        record['date']
+
+    value = input('Litres {}:'.format(record['litres']))
+    if value:
+        record['litres'] = float(value)
+
+    value = input('Price per Litre {}:'.format(record['ppl']))
+    if value:
+        record['ppl'] = float(value)
+
+    value = input('Odometer {}:'.format(record['odo']))
+    if value:
+        record['odo'] = int(value)
+
+    calc_trip = record['trip'] 
     if last:
         calc_trip = record['odo'] - last['odo']
     trip = input('Trip: ({0})'.format(calc_trip))
@@ -219,33 +291,33 @@ def add_record():
     else:
         record['trip'] = calc_trip
 
-    record['notes'] = input('Notes:')
-    calc_mpg(record, False)
-    print('MPG: {0}'.format(record['mpg']))
-    records.append(record)
-    save(rdat, records)
-    menu()
+    value = input('Notes {}:'.format(record['notes']))
+    if value:
+        record['notes'] = value
 
-'''
-Edit chosen vehicle record.
-Choose vehicle, display records by date (10 at a time?), on choice, get new values, save
-'''
-def edit_record():
-    print('Edit Record:')
-    record['reg'] = choose_vehicle()
+    calc_mpg(record, False)
+    print('\n Calculated MPG: {0}'.format(record['mpg']))
+
+
+    if isNew:
+        records.append(record)
+    save(rdat, records)
+
+    # generate graph
+    graph(reg)
     menu()
 
 '''
 Calculate MPG for record.
-If `doSave`, then udpate records file
+If `doSave`, then update records file
 '''
 def calc_mpg(record, doSave):
-    if not 'mpg' in record:
-        record['gallons'] = record['litres']/ltr_gal_conv
-        record['mpg'] = record['trip']/record['gallons']
+    #if not 'mpg' in record:
+    record['gallons'] = record['litres']/ltr_gal_conv
+    record['mpg'] = record['trip']/record['gallons']
 
-        if doSave:
-            save(rdat, records)
+    if doSave:
+        save(rdat, records)
 
 '''
 Get last record for this vehicle
@@ -329,7 +401,7 @@ def summary(r=None):
     save(sdat, summaries)
 
     if r == None:
-        print('Summary for {0}:'.format(reg))
+        print('\nSummary for {0}:'.format(reg))
         print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(mpg['min'], mpg['avg'], mpg['max']))
         print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(trip['min'], trip['avg'], trip['max']))
         print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(ppl['min'], ppl['avg'], ppl['max']))
@@ -342,8 +414,10 @@ def summary(r=None):
 '''
 Based on chosen vehicle's average MPG, calculate max distance travelable
 '''
-def predict():
-    reg = choose_vehicle()
+def predict(reg):
+    if reg == None:
+        reg = choose_vehicle()
+
     print('Prediction for {0}'.format(reg))
     vehicle = get_vehicle(reg)
     sum_rec = get_summary(reg)
@@ -353,12 +427,41 @@ def predict():
     print('{:.2f} miles'.format(prediction))
     menu()
 
+def get_records(reg):
+    # extract records for this vehicle, store in temporary
+    mpg_min=99999999
+    mpg_max = 0
+    recs = []
+    num = 0
+    dmin=999999999999
+    dmax=0
+    drange = 0
+    for r in records:
+        if r['reg'] == reg:
+            d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
+            d = (d-datetime.datetime(1970,1,1)).total_seconds()
+            r['secs'] = d
+            m = r['mpg']
+            dmax  =max(dmax, d)
+            dmin  =min(dmin, d)
+            mpg_max  =max(mpg_max, m)
+            mpg_min  =min(mpg_min, m)
+
+            recs.append(r)
+            num += 1
+
+    drange = dmax - dmin
+    mpg_range = mpg_max - mpg_min
+    recs = sorted(recs, key=itemgetter('secs'))
+    return recs
+
 '''
 For a vehicle, create an SVG graph showing the MPG over time.
 Include average MPG.
 '''
-def graph():
-    reg = choose_vehicle()
+def graph(reg=None):
+    if reg == None:
+        reg = choose_vehicle()
     vehicle = get_vehicle(reg)
     sum_rec = get_summary(reg)
     mpg_avg = sum_rec['mpg']['avg']
@@ -460,31 +563,37 @@ def graph():
 
 def menu():
     print('''\nFuel Economy
-    A) Add Record
-    E) Edit Record
-    S) Show Summary
-    P) Predict
-    G) Graph
-    V) Vehicles
-    Q) Quit
+    1) Add Record
+    2) Edit Record
+    3) Show Summary
+    4) Predict
+    5) Graph
+    6) Vehicles
+    0) Quit
     ''')
-    option = input('Option? :')[0].upper()
+    option = input('Option? :')
 
-    if option == 'A':
-        add_record()
-    elif option == 'S':
-        summary()
-    elif option == 'E':
-        edit_record()
-    elif option == 'P':
-        predict()
-    elif option == 'G':
-        graph()
-    elif option == 'V':
-        manage_vehicles()
-    elif option == 'Q':
-        exit()
-    else:
+    try:
+        option = int(option)
+        if option == 1:
+            add_record()
+        elif option == 3:
+            summary()
+        elif option == 2:
+            choose_record()
+        elif option == 4:
+            predict()
+        elif option == 5:
+            graph()
+        elif option == 6:
+            manage_vehicles()
+        elif option == 0:
+            exit()
+        else:
+            menu()
+    except Exception as e:
+        print('Bad value passed to menu')
+        print(e)
         menu()
 
 def usage():
