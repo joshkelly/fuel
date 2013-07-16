@@ -33,7 +33,7 @@ def load(fname, data):
 def create_economy():
     print('create_economy')
     global cur
-    cur.execute('''create table if not exists fuel_records (reg text, date text, litres real, ppl real, trip real, odo integer, notes text, primary key(reg, odo))''')
+    cur.execute('''create table if not exists fuel_records (reg text, date text, litres real, ppl real, trip real, odo integer, notes text)''')
     
     cur.execute('''select * from fuel_records''')
     data = cur.fetchall()
@@ -46,7 +46,7 @@ def create_economy():
 def create_vehicles():
     global cur
     print ('create_vehicles')
-    cur.execute('''create table if not exists vehicles (reg text, make text, model real, year integer, price real, capacity real)''')
+    cur.execute('''create table if not exists vehicles (reg text, make text, model real, year real, price real, capacity real)''')
 
     cur.execute('''select * from vehicles''')
     data = cur.fetchall()
