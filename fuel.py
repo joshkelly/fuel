@@ -11,7 +11,6 @@ vehicles = []
 rdat = 'records.dat'
 records = []
 
-sdat = 'summaries.dat'
 summaries = []
 
 svg = '''
@@ -399,8 +398,6 @@ def summary(r=None):
         sum_rec = {'mpg':mpg, 'trip':trip, 'ppl':ppl, 'reg':reg}
         summaries.append(sum_rec)
     
-    save(sdat, summaries)
-
     if r == None:
         print('\nSummary for {0}:'.format(reg))
         print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(mpg['min'], mpg['avg'], mpg['max']))
@@ -627,7 +624,6 @@ def main():
 
     load(rdat, records)
     load(vdat, vehicles)
-    load(sdat, summaries)
     menu() 
 
 #call main
