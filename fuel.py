@@ -1,15 +1,19 @@
 #!/usr/bin/python3
 
-import getopt, sys, datetime, json
+import pdb
+import getopt, sys, datetime, sqlite3
+import json
 from operator import itemgetter
 
+conn = None
+cur = None
 debug=False
 ltr_gal_conv = 4.54609 # liters in an imperial gallon
 vdat = 'vehicles.dat'
 vehicles = []
 
-rdat = 'records.dat'
-records = []
+rdat = 'fuel_records.dat'
+fuel_records = []
 
 summaries = []
 
@@ -80,7 +84,8 @@ List known vehicles
 def list_vehicles():
     print('List Vehicles:')
     for v in vehicles:
-        print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg'], v['ftc']))
+        print(v)
+        print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg'], v['capacity']))
     manage_vehicles()
 
 '''
@@ -138,7 +143,7 @@ def manage_vehicles():
 '''
 Load data from file into collection
 '''
-def load(fname, data):
+def load_json(fname, data):
     if len(data) == 0:
         f=0
         try:
@@ -156,7 +161,7 @@ def load(fname, data):
 '''
 Save data to named file
 '''
-def save(fname, data):
+def save_json(fname, data):
     if debug:
         print('#### DEBUG MODE, DATA NOT SAVED ####')
     else:
@@ -165,6 +170,48 @@ def save(fname, data):
             s = json.dumps(v)
             f.write(s+'\n')
         f.close()
+
+'''
+Load data from DB.
+Establish connection and get cursor.
+'''
+def load():
+    global conn, cur, fuel_records, vehicles
+    if conn == None:
+        conn = sqlite3.connect('ldc_fuel.db')
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+    # get data, copy to editable dictionary, inform user of record count
+    cur.execute('select * from fuel_records')
+    fuel_records = [dict(row) for row in cur]
+    print('Loaded {} fuel records.'.format(len(fuel_records)))
+    
+    cur.execute('select * from vehicles')
+    vehicles = [dict(row) for row in cur]
+    print('Loaded {} vehicles.'.format(len(vehicles)))
+
+def save(tbl, rec):
+    global cur
+    if tbl == 'fuel_records':
+        cols = 'reg, odo, litres, date, trip, ppl, notes'
+        #print("insert or replace into {0} ({1}) values ('{2}', {3}, {4}, '{5}', {5}, {6}, '{7}')".format(tbl, cols, rec['reg'], rec['odo'], rec['litres'], rec['date'], rec['trip'], rec['ppl'], rec['notes']))
+        cur.execute("insert or replace into {0} ({1}) values ('{2}', {3}, {4}, '{5}', {6}, {7}, '{8}')".format(tbl, cols, rec['reg'], rec['odo'], rec['litres'], rec['date'], rec['trip'], rec['ppl'], rec['notes']))
+    elif tbl == 'vehicles':
+        cols = 'reg, make, model, year, ftc'
+        cur.execute("insert or replace into vehicles values ('{0}', '{1}', '{2}', {3}, 0, {4})".format(rec['reg'], rec['make'], rec['model'], rec['year'], rec['ftc']))
+    else:
+        print('Unrecognised table:', tbl)
+
+
+    load()
+
+'''
+Commit and close DB connection
+'''
+def close():
+    conn.commit()
+    conn.close()
 
 '''
 Choose vehicle by reg
@@ -203,7 +250,7 @@ def get_vehicle(reg):
     return vehicle
 
 '''
-Add new record, save to records.dat
+Add new record, save to fuel_records.dat
 '''
 def add_record():
     record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
@@ -213,13 +260,13 @@ def add_record():
 
 '''
 Get vehicle record.
-Choose vehicle, display records by date (10 at a time?), on choice, get new values, save
+Choose vehicle, display fuel_records by date (10 at a time?), on choice, get new values, save
 '''
 def choose_record():
     reg = choose_vehicle()
     print('\nEdit Record for {}:'.format(reg))
-    # get date-sorted list of records for the selected vehicle
-    recs = get_records(reg)
+    # get date-sorted list of fuel_records for the selected vehicle
+    recs = get_fuel_records(reg)
 
     num=1
     print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
@@ -255,6 +302,9 @@ def update_record(reg=None, rec=None):
     # did they pass us a vehicle?
     if (reg == None):
         reg = choose_vehicle()
+
+    # set reg for record
+    record['reg']=reg
        
     # are we adding a new one or updating an old one?
     if (rec == None):
@@ -297,19 +347,19 @@ def update_record(reg=None, rec=None):
 
     calc_mpg(record, False)
     print('\n Calculated MPG: {0}'.format(record['mpg']))
+    print(record)
 
 
-    if isNew:
-        records.append(record)
-    save(rdat, records)
+    # update database
+    save('fuel_records', record)
 
     # generate graph
-    graph(reg)
+    #graph(reg)
     menu()
 
 '''
 Calculate MPG for record.
-If `doSave`, then update records file
+If `doSave`, then update fuel_records file
 '''
 def calc_mpg(record, doSave):
     #if not 'mpg' in record:
@@ -317,14 +367,14 @@ def calc_mpg(record, doSave):
     record['mpg'] = record['trip']/record['gallons']
 
     if doSave:
-        save(rdat, records)
+        save(rdat, fuel_records)
 
 '''
 Get last record for this vehicle
 '''
 def last_record(reg):
     curr = None
-    for record in records:
+    for record in fuel_records:
         if record['reg'] == reg:
             if curr == None:
                 curr = record
@@ -351,7 +401,7 @@ def get_summary(reg):
     return sum_rec
 
 '''
-Create/update summary records for a vehicle
+Create/update summary fuel_records for a vehicle
 if no reg passed, prompt user to choose, calculate, save and display results
 if reg passed, calculate, save and return results
 '''
@@ -371,8 +421,8 @@ def summary(r=None):
             sum_rec = s
             break
 
-    num=0 #number of matching records
-    for record in records:
+    num=0 #number of matching fuel_records
+    for record in fuel_records:
         if record['reg'] == reg:
             calc_mpg(record, True)
             num+=1
@@ -425,8 +475,8 @@ def predict(reg):
     print('{:.2f} miles'.format(prediction))
     menu()
 
-def get_records(reg):
-    # extract records for this vehicle, store in temporary
+def get_fuel_records(reg):
+    # extract fuel_records for this vehicle, store in temporary
     mpg_min=99999999
     mpg_max = 0
     recs = []
@@ -434,7 +484,7 @@ def get_records(reg):
     dmin=999999999999
     dmax=0
     drange = 0
-    for r in records:
+    for r in fuel_records:
         if r['reg'] == reg:
             d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
             d = (d-datetime.datetime(1970,1,1)).total_seconds()
@@ -458,10 +508,12 @@ For a vehicle, create an SVG graph showing the MPG over time.
 Include average MPG.
 '''
 def graph(reg=None):
+    global fuel_records
     if reg == None:
         reg = choose_vehicle()
     vehicle = get_vehicle(reg)
     sum_rec = get_summary(reg)
+    print('graph')
     mpg_avg = sum_rec['mpg']['avg']
     #mpg_max = sum_rec['mpg']['max']
     #mpg_min = sum_rec['mpg']['min']
@@ -471,22 +523,22 @@ def graph(reg=None):
     scalex = 400
     scaley = 400
 
-    # extract records for this vehicle, store in temporary
+    # extract fuel_records for this vehicle, store in temporary
     recs = []
     num = 0
     dmin=999999999999
     dmax=0
     drange = 0
-    for r in records:
+    for r in fuel_records:
         if r['reg'] == reg:
             d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
             d = (d-datetime.datetime(1970,1,1)).total_seconds()
             r['secs'] = d
-            m = r['mpg']
-            dmax  =max(dmax, d)
-            dmin  =min(dmin, d)
-            mpg_max  =max(mpg_max, m)
-            mpg_min  =min(mpg_min, m)
+            #m = r['mpg']
+            dmax = max(dmax, d)
+            dmin = min(dmin, d)
+            mpg_max = max(mpg_max, m)
+            mpg_min = min(mpg_min, m)
 
             recs.append(r)
             num += 1
@@ -557,7 +609,6 @@ def graph(reg=None):
     f.write(svg.format(reg, inner_svg)+'\n')
     f.close()
     print('File at ',svg_fname)
-    menu()
 
 def menu():
     print('''\nFuel Economy
@@ -571,7 +622,8 @@ def menu():
     ''')
     option = input('Option? :')
 
-    try:
+    #try:
+    if(option):
         option = int(option)
         if option == 1:
             add_record()
@@ -583,16 +635,18 @@ def menu():
             predict()
         elif option == 5:
             graph()
+            menu()
         elif option == 6:
             manage_vehicles()
         elif option == 0:
+            close()
             exit()
         else:
             menu()
-    except Exception as e:
-        print('Bad value passed to menu')
-        print(e)
-        menu()
+    #except Exception as e:
+    #    print('Bad value passed to menu')
+    #    print(e)
+    #    menu()
 
 def usage():
     print('hello')
@@ -622,8 +676,9 @@ def main():
     if debug:
         print('#### DEBUG MODE ####')
 
-    load(rdat, records)
-    load(vdat, vehicles)
+#    load_json(rdat, fuel_records)
+#    load_json(vdat, vehicles)
+    load()
     menu() 
 
 #call main
