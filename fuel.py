@@ -366,8 +366,8 @@ def calc_mpg(record, doSave):
     record['gallons'] = record['litres']/ltr_gal_conv
     record['mpg'] = record['trip']/record['gallons']
 
-    #if doSave:
-    #    save(rdat, fuel_records)
+    if doSave:
+        save(rdat, fuel_records)
 
 '''
 Get last record for this vehicle
