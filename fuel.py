@@ -262,6 +262,7 @@ def update_record(reg=None, rec=None):
         # adding new, so get the previous value.
         last = last_record(reg)
         rec = record
+        rec['reg'] = reg
     else:
         record = rec
         isNew = False
