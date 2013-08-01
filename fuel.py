@@ -269,7 +269,7 @@ def update_record(reg=None, rec=None):
 
     value = input('Date ({}):'.format(record['date']))
     if value:
-        record['date']
+        record['date'] = value
 
     value = input('Litres {}:'.format(record['litres']))
     if value:
