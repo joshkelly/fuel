@@ -54,3 +54,4 @@
 {"mpg": 42.95635369267422, "gallons": 7.386567357883367, "notes": "", "ppl": 1.369, "secs": 1373760000.0, "odo": 83571, "date": "2013/07/14", "litres": 33.58, "reg": "WK51ARF", "trip": 317.3}
 {"mpg": 37.449186732045, "trip": 285.6, "gallons": 7.626333838529373, "notes": "Tyres set 31 front, 29 rear", "ppl": 1.369, "secs": 1374969600.0, "odo": 83857, "date": "2013/07/28", "litres": 34.67, "reg": "WK51ARF"}
 {"mpg": 38.18135912211869, "gallons": 8.970345945636799, "notes": "Super unleaded. Tyres 29 all round", "ppl": 1.429, "secs": 1374796800.0, "odo": 132846, "date": "2013/07/26", "litres": 40.78, "reg": "K40RBT", "trip": 342.5}
+{"mpg": 37.14873448358495, "gallons": 9.179316731520933, "notes": "Tyres set to 29 p.s.i", "trip": 341, "odo": 133187, "date": "2013/08/01", "litres": 41.73, "ppl": 1.439, "reg": "K40RBT"}
