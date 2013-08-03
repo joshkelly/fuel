@@ -462,7 +462,7 @@ def summary(r=None):
 '''
 Based on chosen vehicle's average MPG, calculate max distance travelable
 '''
-def predict(reg):
+def predict(reg=None):
     if reg == None:
         reg = choose_vehicle()
 
@@ -470,7 +470,7 @@ def predict(reg):
     vehicle = get_vehicle(reg)
     sum_rec = get_summary(reg)
 
-    ftcg = vehicle['ftc'] / ltr_gal_conv
+    ftcg = vehicle['capacity'] / ltr_gal_conv
     prediction = sum_rec['mpg']['avg'] * ftcg
     print('{:.2f} miles'.format(prediction))
     menu()
