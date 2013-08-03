@@ -533,8 +533,9 @@ def graph(reg=None):
         if r['reg'] == reg:
             d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
             d = (d-datetime.datetime(1970,1,1)).total_seconds()
+            calc_mpg(r, False)
             r['secs'] = d
-            #m = r['mpg']
+            m = r['mpg']
             dmax = max(dmax, d)
             dmin = min(dmin, d)
             mpg_max = max(mpg_max, m)
