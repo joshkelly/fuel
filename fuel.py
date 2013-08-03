@@ -3,6 +3,7 @@
 import pdb
 import getopt, sys, datetime, sqlite3
 import json
+import mkdb
 from operator import itemgetter
 
 conn = None
@@ -178,7 +179,8 @@ Establish connection and get cursor.
 def load():
     global conn, cur, fuel_records, vehicles
     if conn == None:
-        conn = sqlite3.connect('ldc_fuel.db')
+        #conn = sqlite3.connect('ldc_fuel.db')
+        conn = mkdb.init()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
@@ -203,13 +205,13 @@ def save(tbl, rec):
     else:
         print('Unrecognised table:', tbl)
 
-
     load()
 
 '''
 Commit and close DB connection
 '''
 def close():
+    global conn
     conn.commit()
     conn.close()
 
