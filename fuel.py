@@ -142,37 +142,6 @@ def manage_vehicles():
         menu()
 
 '''
-Load data from file into collection
-'''
-def load_json(fname, data):
-    if len(data) == 0:
-        f=0
-        try:
-            with open(fname) as f: 
-                f.close
-        except IOError as e:
-            print(e)
-            f = open(fname, 'w')
-            f.close()
-            
-        f = open(fname)
-        for line in f:
-            data.append(json.loads(line))
-
-'''
-Save data to named file
-'''
-def save_json(fname, data):
-    if debug:
-        print('#### DEBUG MODE, DATA NOT SAVED ####')
-    else:
-        f = open(fname, 'w')
-        for v in data:
-            s = json.dumps(v)
-            f.write(s+'\n')
-        f.close()
-
-'''
 Load data from DB.
 Establish connection and get cursor.
 '''
@@ -679,8 +648,6 @@ def main():
     if debug:
         print('#### DEBUG MODE ####')
 
-#    load_json(rdat, fuel_records)
-#    load_json(vdat, vehicles)
     load()
     menu() 
 
