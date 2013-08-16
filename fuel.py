@@ -37,7 +37,7 @@ def add_vehicle():
     vehicle['ftc'] = input('Fuel Tank Capacity (litres):')
     vehicles.append(vehicle)
     save(vdat, vehicles)
-    manage_vehicles()
+    vehicle_menu()
 
 '''
 Modify a vehicle record
@@ -74,7 +74,7 @@ def edit_vehicle():
 
         save(vdat, vehicles)
 
-    manage_vehicles()
+    vehicle_menu()
 
 '''
 List known vehicles
@@ -84,7 +84,7 @@ def list_vehicles():
     for v in vehicles:
         print(v)
         print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg'], v['capacity']))
-    manage_vehicles()
+    vehicle_menu()
 
 '''
 Remove vehicle from data
@@ -110,12 +110,12 @@ def remove_vehicle():
         if confirm == 'y':
             del vehicles[option-1]
             save(vdat, vehicles)
-    manage_vehicles()
+    vehicle_menu()
 
 '''
-Manage vehicles sub-menu
+Manage vehicles sub-main_menu
 '''
-def manage_vehicles():
+def vehicle_menu():
     print('''Vehicles:
     1) Add
     2) Edit
@@ -129,7 +129,7 @@ def manage_vehicles():
         option = int(option)
         
         if option == 0:
-            menu()
+            main_menu()
         elif option == 1:
             add_vehicle()
         elif option == 2:
@@ -139,7 +139,7 @@ def manage_vehicles():
         elif option == 4:
             remove_vehicle()
         else:
-            manage_vehicles()
+            vehicle_menu()
 
 '''
 Load data from DB.
@@ -196,9 +196,9 @@ def choose_vehicle():
 
     option = int(input('Vehicle? :'))
 
-    # go ahead if option in range, else, re-build menu
+    # go ahead if option in range, else, re-build main_menu
     if option == 0:
-        menu()
+        main_menu()
     elif (option > 0 and option <= len(vehicles)):
         return vehicles[option-1]['reg']
     else:
@@ -206,7 +206,7 @@ def choose_vehicle():
 
 '''
 Get vehicle record by registration
-If no vehicle with that reg, warn and call menu
+If no vehicle with that reg, warn and call main_menu
 '''
 def get_vehicle(reg):
     vehicle = None
@@ -216,7 +216,7 @@ def get_vehicle(reg):
             break
     if vehicle == None:
         print('No vehicle with that registration [{}]'.format(reg))
-        menu()
+        main_menu()
 
     return vehicle
 
@@ -252,7 +252,7 @@ def choose_record():
         option = int(option)
         # go ahead if option in range, else, re-build menu
         if option == 0:
-            menu()
+            main_menu()
         elif (option > 0 and option <= len(recs)):
             update_record(reg, recs[option-1])
         else:
@@ -326,7 +326,7 @@ def update_record(reg=None, rec=None):
 
     # generate graph
     #graph(reg)
-    menu()
+    main_menu()
 
 '''
 Calculate MPG for record.
@@ -426,7 +426,7 @@ def summary(r=None):
         print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(ppl['min'], ppl['avg'], ppl['max']))
         print('Total miles: {:.2f}'.format(trip['total']))
    
-        menu()
+        main_menu()
     else:
         return sum_rec
 
@@ -444,7 +444,7 @@ def predict(reg=None):
     ftcg = vehicle['capacity'] / ltr_gal_conv
     prediction = sum_rec['mpg']['avg'] * ftcg
     print('{:.2f} miles'.format(prediction))
-    menu()
+    main_menu()
 
 def get_fuel(reg):
     # extract fuel for this vehicle, store in temporary
@@ -582,7 +582,7 @@ def graph(reg=None):
     f.close()
     print('File at ',svg_fname)
 
-def menu():
+def main_menu():
     print('''\nFuel Economy
     1) Add Record
     2) Edit Record
@@ -607,18 +607,18 @@ def menu():
             predict()
         elif option == 5:
             graph()
-            menu()
+            main_menu()
         elif option == 6:
-            manage_vehicles()
+            vehicle_menu()
         elif option == 0:
             close()
             exit()
         else:
-            menu()
+            main_menu()
     #except Exception as e:
-    #    print('Bad value passed to menu')
+    #    print('Bad value passed to main_menu')
     #    print(e)
-    #    menu()
+    #    main_menu()
 
 def usage():
     print('hello')
@@ -649,7 +649,7 @@ def main():
         print('#### DEBUG MODE ####')
 
     load()
-    menu() 
+    main_menu() 
 
 #call main
 if __name__ == "__main__":
