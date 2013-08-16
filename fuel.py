@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import pdb
-import getopt, sys, datetime, sqlite3
+import getopt, sys, datetime, sqlite3, string
 import json
 import mkdb
 from operator import itemgetter
@@ -36,8 +36,18 @@ def add_vehicle():
     vehicle['reg'] = input('Reg. No.:')
     vehicle['ftc'] = input('Fuel Tank Capacity (litres):')
     vehicles.append(vehicle)
-    save(vdat, vehicles)
+    save('vehicles', vehicles)
     vehicle_menu()
+
+'''
+Handler for data query
+'''
+def query_vehicle(vehicle, element):
+    if element != 'vehicle_id': 
+        label = string.capwords(element.replace('_', ' '))
+        e = input('{1} ({0}):'.format(vehicle[element], label))
+        if e:
+            vehicle[element] = e
 
 '''
 Modify a vehicle record
@@ -47,32 +57,17 @@ def edit_vehicle():
     num = 1
 
     for v in vehicles:
-        print('{0}) {1}'.format(num, v['reg']))
+        print('{0}) {1}'.format(num, v['reg_no']))
         num +=1
 
     print('0) Back')
     option = int(input('Option? :'))
     if option != 0:
         vehicle = vehicles[option-1]
-        if not 'ftc' in vehicle:
-            vehicle['ftc']=0
-        e= input('Make ({0}):'.format(vehicle['make']))
-        if e:
-            vehicle['make'] = e
-        e = input('Model ({0}):'.format(vehicle['model']))
-        if e:
-            vehicle['model'] = e
-        e = input('Year ({0}):'.format(vehicle['year']))
-        if e:
-            vehicle['year'] = e
-        e = input('Reg. No. ({0}):'.format(vehicle['reg']))
-        if e:
-            vehicle['reg'] = e
-        e = input('Fuel Tank Capacity ({0}):'.format(vehicle['ftc'] or 0))
-        if e:
-            vehicle['ftc'] = int(e)
+        for e in vehicle:
+            query_vehicle(vehicle, e)
 
-        save(vdat, vehicles)
+        save('vehicles', vehicle)
 
     vehicle_menu()
 
@@ -82,8 +77,7 @@ List known vehicles
 def list_vehicles():
     print('List Vehicles:')
     for v in vehicles:
-        print(v)
-        print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg'], v['capacity']))
+        print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg_no'], v['fuel_cap']))
     vehicle_menu()
 
 '''
@@ -169,8 +163,24 @@ def save(tbl, rec):
         #print("insert or replace into {0} ({1}) values ('{2}', {3}, {4}, '{5}', {5}, {6}, '{7}')".format(tbl, cols, rec['reg'], rec['odo'], rec['litres'], rec['date'], rec['trip'], rec['ppl'], rec['notes']))
         cur.execute("insert or replace into {0} ({1}) values ('{2}', {3}, {4}, '{5}', {6}, {7}, '{8}')".format(tbl, cols, rec['reg'], rec['odo'], rec['litres'], rec['date'], rec['trip'], rec['ppl'], rec['notes']))
     elif tbl == 'vehicles':
-        cols = 'reg, make, model, year, ftc'
-        cur.execute("insert or replace into vehicles values ('{0}', '{1}', '{2}', {3}, 0, {4})".format(rec['reg'], rec['make'], rec['model'], rec['year'], rec['ftc']))
+        # vehicle_id integer, no data, unique key
+        # reg_no text, map to 'reg'
+        # make text, map to 'make' 
+        # model text, map to 'model'
+        # year integer, map to 'year'
+        # purchase_price real, no data, 0
+        # purchase_date text, no data, 2013/08/16
+        # fuel_cap real, map to 'ftc'
+        # fuel_type text, no data, ''
+        # oil_cap real,no data, 0
+        # oil_type text, no data, ''
+        # tyre_cap real,no data, 0
+        # tyre_type text,no data, ''
+        # notes text, no data, ''
+        cols = 'vehicle_id, reg_no, make, model, year, purchase_price, purchase_date, fuel_cap, fuel_type, oil_cap, oil_type, tyre_cap, tyre_type, notes'
+        sql = "insert or replace into vehicles ({0}) values ({1}, '{2}', '{3}', '{4}', {5}, {6}, '{7}', {8}, '{9}', {10}, '{11}', {12}, '{13}', '{14}')"
+        print(rec)
+        cur.execute('insert or replace into vehicles values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [rec['vehicle_id'], rec['reg_no'], rec['make'], rec['model'], rec['year'], rec['purchase_price'], rec['purchase_date'], rec['fuel_cap'], rec['fuel_type'], rec['oil_cap'], rec['oil_type'], rec['tyre_cap'], rec['tyre_type'], rec['notes']])
     else:
         print('Unrecognised table:', tbl)
 
@@ -441,7 +451,7 @@ def predict(reg=None):
     vehicle = get_vehicle(reg)
     sum_rec = get_summary(reg)
 
-    ftcg = vehicle['capacity'] / ltr_gal_conv
+    ftcg = vehicle['fuel_cap'] / ltr_gal_conv
     prediction = sum_rec['mpg']['avg'] * ftcg
     print('{:.2f} miles'.format(prediction))
     main_menu()
