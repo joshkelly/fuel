@@ -593,13 +593,13 @@ def graph(reg=None):
     print('File at ',svg_fname)
 
 def main_menu():
-    print('''\nFuel Economy
-    1) Add Record
-    2) Edit Record
+    print('''\nFuel Economy and Service Records
+    1) Add Fuel Record
+    2) Edit Fuel Record
     3) Show Summary
-    4) Predict
-    5) Graph
-    6) Vehicles
+    4) Predict Range
+    5) Economy Graph
+    6) Vehicle Management
     0) Quit
     ''')
     option = input('Option? :')
