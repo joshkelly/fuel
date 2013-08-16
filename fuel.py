@@ -10,11 +10,8 @@ conn = None
 cur = None
 debug=False
 ltr_gal_conv = 4.54609 # liters in an imperial gallon
-vdat = 'vehicles.dat'
 vehicles = []
-
-rdat = 'fuel_records.dat'
-fuel_records = []
+fuel = []
 
 summaries = []
 
@@ -120,33 +117,36 @@ Manage vehicles sub-menu
 '''
 def manage_vehicles():
     print('''Vehicles:
-    A) Add
-    E) Edit
-    L) List
-    R) Remove
-    B) Back to Main Menu
+    1) Add
+    2) Edit
+    3) List
+    4) Remove
+    0) Back to Main Menu
     ''')
-    option = input('Option? :')[0].upper()
+    option = input('Option? :')
 
-    if option == 'B':
-        menu()
-    elif option == 'A':
-        add_vehicle()
-    elif option == 'E':
-        edit_vehicle()
-    elif option == 'R':
-        remove_vehicle()
-    elif option == 'L':
-        list_vehicles()
-    else:
-        menu()
+    if(option):
+        option = int(option)
+        
+        if option == 0:
+            menu()
+        elif option == 1:
+            add_vehicle()
+        elif option == 2:
+            edit_vehicle()
+        elif option == 3:
+            list_vehicles()
+        elif option == 4:
+            remove_vehicle()
+        else:
+            manage_vehicles()
 
 '''
 Load data from DB.
 Establish connection and get cursor.
 '''
 def load():
-    global conn, cur, fuel_records, vehicles
+    global conn, cur, fuel, vehicles
     if conn == None:
         #conn = sqlite3.connect('ldc_fuel.db')
         conn = mkdb.init()
@@ -154,9 +154,9 @@ def load():
         cur = conn.cursor()
 
     # get data, copy to editable dictionary, inform user of record count
-    cur.execute('select * from fuel_records')
-    fuel_records = [dict(row) for row in cur]
-    print('Loaded {} fuel records.'.format(len(fuel_records)))
+    cur.execute('select * from fuel')
+    fuel = [dict(row) for row in cur]
+    print('Loaded {} fuel records.'.format(len(fuel)))
     
     cur.execute('select * from vehicles')
     vehicles = [dict(row) for row in cur]
@@ -164,7 +164,7 @@ def load():
 
 def save(tbl, rec):
     global cur
-    if tbl == 'fuel_records':
+    if tbl == 'fuel':
         cols = 'reg, odo, litres, date, trip, ppl, notes'
         #print("insert or replace into {0} ({1}) values ('{2}', {3}, {4}, '{5}', {5}, {6}, '{7}')".format(tbl, cols, rec['reg'], rec['odo'], rec['litres'], rec['date'], rec['trip'], rec['ppl'], rec['notes']))
         cur.execute("insert or replace into {0} ({1}) values ('{2}', {3}, {4}, '{5}', {6}, {7}, '{8}')".format(tbl, cols, rec['reg'], rec['odo'], rec['litres'], rec['date'], rec['trip'], rec['ppl'], rec['notes']))
@@ -221,7 +221,7 @@ def get_vehicle(reg):
     return vehicle
 
 '''
-Add new record, save to fuel_records.dat
+Add new record, save to fuel.dat
 '''
 def add_record():
     record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
@@ -231,13 +231,13 @@ def add_record():
 
 '''
 Get vehicle record.
-Choose vehicle, display fuel_records by date (10 at a time?), on choice, get new values, save
+Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
 '''
 def choose_record():
     reg = choose_vehicle()
     print('\nEdit Record for {}:'.format(reg))
-    # get date-sorted list of fuel_records for the selected vehicle
-    recs = get_fuel_records(reg)
+    # get date-sorted list of fuel for the selected vehicle
+    recs = get_fuel(reg)
 
     num=1
     print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
@@ -322,7 +322,7 @@ def update_record(reg=None, rec=None):
 
 
     # update database
-    save('fuel_records', record)
+    save('fuel', record)
 
     # generate graph
     #graph(reg)
@@ -330,7 +330,7 @@ def update_record(reg=None, rec=None):
 
 '''
 Calculate MPG for record.
-If `doSave`, then update fuel_records file
+If `doSave`, then update fuel file
 '''
 def calc_mpg(record, doSave):
     #if not 'mpg' in record:
@@ -338,14 +338,14 @@ def calc_mpg(record, doSave):
     record['mpg'] = record['trip']/record['gallons']
 
     #if doSave:
-    #    save(rdat, fuel_records)
+    #    save(rdat, fuel)
 
 '''
 Get last record for this vehicle
 '''
 def last_record(reg):
     curr = None
-    for record in fuel_records:
+    for record in fuel:
         if record['reg'] == reg:
             if curr == None:
                 curr = record
@@ -372,7 +372,7 @@ def get_summary(reg):
     return sum_rec
 
 '''
-Create/update summary fuel_records for a vehicle
+Create/update summary fuel for a vehicle
 if no reg passed, prompt user to choose, calculate, save and display results
 if reg passed, calculate, save and return results
 '''
@@ -392,8 +392,8 @@ def summary(r=None):
             sum_rec = s
             break
 
-    num=0 #number of matching fuel_records
-    for record in fuel_records:
+    num=0 #number of matching fuel
+    for record in fuel:
         if record['reg'] == reg:
             calc_mpg(record, True)
             num+=1
@@ -446,8 +446,8 @@ def predict(reg=None):
     print('{:.2f} miles'.format(prediction))
     menu()
 
-def get_fuel_records(reg):
-    # extract fuel_records for this vehicle, store in temporary
+def get_fuel(reg):
+    # extract fuel for this vehicle, store in temporary
     mpg_min=99999999
     mpg_max = 0
     recs = []
@@ -455,7 +455,7 @@ def get_fuel_records(reg):
     dmin=999999999999
     dmax=0
     drange = 0
-    for r in fuel_records:
+    for r in fuel:
         if r['reg'] == reg:
             d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
             d = (d-datetime.datetime(1970,1,1)).total_seconds()
@@ -479,7 +479,7 @@ For a vehicle, create an SVG graph showing the MPG over time.
 Include average MPG.
 '''
 def graph(reg=None):
-    global fuel_records
+    global fuel
     if reg == None:
         reg = choose_vehicle()
     vehicle = get_vehicle(reg)
@@ -494,13 +494,13 @@ def graph(reg=None):
     scalex = 400
     scaley = 400
 
-    # extract fuel_records for this vehicle, store in temporary
+    # extract fuel for this vehicle, store in temporary
     recs = []
     num = 0
     dmin=999999999999
     dmax=0
     drange = 0
-    for r in fuel_records:
+    for r in fuel:
         if r['reg'] == reg:
             d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
             d = (d-datetime.datetime(1970,1,1)).total_seconds()
