@@ -40,6 +40,7 @@ def create_fuel():
     data = cur.fetchall()
 
     if not data:
+        # fuel_id integer, primary key
         # vehicle_id integer, use reg as look up into vdata
         # date text, map to date
         # litres real, map to 'litres'
@@ -49,7 +50,7 @@ def create_fuel():
         # cost real, calculate as (ppl * litres), store to 2 d.p.
         # mpg real, map to 'mpg'
         # notes text, map to 'notes'
-        sql = "insert into fuel values ({0}, '{1}', {2}, {3}, {4}, {5}, {6}, {7}, '{8}')"
+        sql = "insert into fuel values (NULL, {0}, '{1}', {2}, {3}, {4}, {5}, {6}, {7}, '{8}')"
         for v in records:
             vehicleID = None
             for i in vdata:
