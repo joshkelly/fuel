@@ -14,6 +14,7 @@ vehicles = []
 fuel = []
 
 summaries = []
+vrec = {'vehicle_id' : None, 'reg_no' :'', 'make' :'', 'model' :'', 'year' : 0, 'purchase_price' : 0, 'purchase_date' :'', 'fuel_cap' : 0, 'fuel_type' :'', 'oil_cap' : 0, 'oil_type' :'', 'tyre_cap' : 0, 'tyre_type' :'', 'notes' :''}
 
 svg = '''
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="800" height="600">
@@ -28,15 +29,13 @@ svg = '''
 Add new vehicle record
 '''
 def add_vehicle():
-    vehicle = {'make':'', 'model':'', 'year':'', 'reg':'', 'ftc':0}
+    global vehicles
+    vehicle = vrec.copy()
     print('Add Vehicle:')
-    vehicle['make'] = input('Make:')
-    vehicle['model'] = input('Model:')
-    vehicle['year'] = input('Year:')
-    vehicle['reg'] = input('Reg. No.:')
-    vehicle['ftc'] = input('Fuel Tank Capacity (litres):')
+    for e in vehicle:
+        query_vehicle(vehicle, e)
     vehicles.append(vehicle)
-    save('vehicles', vehicles)
+    save('vehicles', vehicle)
     vehicle_menu()
 
 '''
@@ -84,10 +83,11 @@ def list_vehicles():
 Remove vehicle from data
 '''
 def remove_vehicle():
+    global vehicles, cur
     print('Remove Vehicle:')
     num = 1
     for v in vehicles:
-        print('{0}) {1}'.format(num, v['reg']))
+        print('{0}) {1}'.format(num, v['reg_no']))
         num +=1
     print('0) Back')
     option = input('Option? :')
@@ -100,10 +100,10 @@ def remove_vehicle():
 
     if option != 0:
         vehicle = vehicles[option-1]
-        confirm = input('Remove {0}? [y/N]:'.format(vehicle['reg'])).lower()
+        confirm = input('Remove {0}? [y/N]:'.format(vehicle['reg_no'])).lower()
         if confirm == 'y':
-            del vehicles[option-1]
-            save(vdat, vehicles)
+            cur.execute('delete from vehicles where reg_no="{0}"'.format(vehicle['reg_no']))
+            load()
     vehicle_menu()
 
 '''
