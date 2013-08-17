@@ -342,28 +342,24 @@ def edit_service():
     '''
     Modify a service record
     '''
-    print('Modify Service:')
     vehicle = choose_vehicle()
     service = choose_service(vehicle)
-    print(service)
+    
     if service:
         print('now here')
         query('service', service)
-
         save('service', service)
 
     main_menu()
-
 
 def choose_service(vehicle=None):
     '''
     Get vehicle record.
     Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
     '''
-    service = None
     if not vehicle:
         vehicle = choose_vehicle()
-    print('\nEdit Record for {}:'.format(vehicle['reg_no']))
+    print('\nEdit Service Record for {}:'.format(vehicle['reg_no']))
     # get date-sorted list of fuel for the selected vehicle
     cur.execute('select * from service where vehicle_id="{0}" order by date asc'.format(vehicle['vehicle_id']))
     recs = [dict(row) for row in cur]
@@ -375,26 +371,29 @@ def choose_service(vehicle=None):
         num = num +1
     print('0) Back')
 
-    option = input('Record? :')
+    processed = False
+    option = None
+    option = input('Service? :')
 
-    try:
+    if not option:
+        choose_service(vehicle)
+
+    # check option is numeric
+    if option.isnumeric():
+        processed = True
+
         option = int(option)
         # go ahead if option in range, else, re-build menu
         if option == 0:
             main_menu()
         elif (option > 0 and option <= len(recs)):
-            print('here')
-            service = recs[option-1]
-            print(service)
+            return recs[option-1]
         else:
-            choose_service()
-    except Exception as err:
-        print('Bad Value passed to menu')
-        print(err)
-        choose_service(vehicle)
+            processed = False
 
-    print(service)
-    return service
+    if not processed:
+        print('Invalid option [{0}]'.format(option))
+        choose_service(vehicle)
 
 def get_summary(vehicle):
     '''
@@ -706,7 +705,7 @@ def main_menu():
         elif option == 7:
             add_service()
         elif option == 8:
-            choose_service()
+            edit_service()
         elif option == 0:
             mkdb.close()
             exit()
