@@ -12,10 +12,15 @@ debug=False
 ltr_gal_conv = 4.54609 # liters in an imperial gallon
 vehicles = []
 fuel = []
-
 summaries = []
+
 vrec = {'vehicle_id' : None, 'reg_no' :'', 'make' :'', 'model' :'', 'year' : 0, 'purchase_price' : 0, 'purchase_date' :'', 'fuel_cap' : 0, 'fuel_type' :'', 'oil_cap' : 0, 'oil_type' :'', 'tyre_cap' : 0, 'tyre_type' :'', 'notes' :''}
 frec = {'fuel_id':None, 'vehicle_id':0, 'date':'', 'litres':0, 'ppl':0, 'trip':0, 'odo':0, 'cost':0, 'mpg':0, 'notes':''}
+
+forms={
+    'vehicle':['reg_no', 'make', 'model', 'year', 'purchase_price', 'purchase_date', 'fuel_cap', 'fuel_type', 'oil_cap', 'oil_type', 'tyre_cap', 'tyre_type', 'notes'],
+    'fuel':['vehicle_id', 'date', 'litres', 'ppl', 'trip', 'odo', 'cost', 'notes']
+}
 
 svg = '''
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="800" height="600">
@@ -33,21 +38,25 @@ def add_vehicle():
     global vehicles
     vehicle = vrec.copy()
     print('Add Vehicle:')
-    for e in vehicle:
-        query_vehicle(vehicle, e)
+    query('vehicle', vehicle)
     vehicles.append(vehicle)
     save('vehicles', vehicle)
     vehicle_menu()
 
-def query_vehicle(vehicle, element):
+def query(tbl, record):
     '''
-    Handler for data query
+    Handler for data query.
+
+    Uses form to order output
     '''
-    if element != 'vehicle_id': 
+    global forms
+
+    form = forms[tbl]
+    for element in form:
         label = string.capwords(element.replace('_', ' '))
-        e = input('{1} ({0}):'.format(vehicle[element], label))
+        e = input('{1} ({0}):'.format(record[element], label))
         if e:
-            vehicle[element] = e
+            record[element] = e
 
 def edit_vehicle():
     '''
@@ -55,8 +64,7 @@ def edit_vehicle():
     '''
     print('Modify Vehicle:')
     vehicle = choose_vehicle()
-    for e in vehicle:
-        query_vehicle(vehicle, e)
+    query('vehicle', vehicle)
 
     save('vehicles', vehicle)
 
@@ -179,9 +187,8 @@ def choose_vehicle():
 
 def add_fuel():
     '''
-    Add new record, save to fuel.dat
+    Add new record.
     '''
-    record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
     vehicle = choose_vehicle()
     print('\nAdd Record for {}:'.format(vehicle['reg_no']))
     update_fuel(vehicle)
@@ -275,7 +282,6 @@ def update_fuel(vehicle=None, rec=None):
 
     calc_mpg(record, False)
     print('\n Calculated MPG: {0}'.format(record['mpg']))
-    print(record)
 
     # update database
     save('fuel', record)
