@@ -15,6 +15,7 @@ fuel = []
 
 summaries = []
 vrec = {'vehicle_id' : None, 'reg_no' :'', 'make' :'', 'model' :'', 'year' : 0, 'purchase_price' : 0, 'purchase_date' :'', 'fuel_cap' : 0, 'fuel_type' :'', 'oil_cap' : 0, 'oil_type' :'', 'tyre_cap' : 0, 'tyre_type' :'', 'notes' :''}
+frec = {'fuel_id':None, 'vehicle_id':0, 'date':'', 'litres':0, 'ppl':0, 'trip':0, 'odo':0, 'cost':0, 'mpg':0, 'notes':''}
 
 svg = '''
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="800" height="600">
@@ -159,9 +160,17 @@ def load():
 def save(tbl, rec):
     global cur
     if tbl == 'fuel':
-        cols = 'reg, odo, litres, date, trip, ppl, notes'
-        #print("insert or replace into {0} ({1}) values ('{2}', {3}, {4}, '{5}', {5}, {6}, '{7}')".format(tbl, cols, rec['reg'], rec['odo'], rec['litres'], rec['date'], rec['trip'], rec['ppl'], rec['notes']))
-        cur.execute("insert or replace into {0} ({1}) values ('{2}', {3}, {4}, '{5}', {6}, {7}, '{8}')".format(tbl, cols, rec['reg'], rec['odo'], rec['litres'], rec['date'], rec['trip'], rec['ppl'], rec['notes']))
+        # fuel_id integer, primary key
+        # vehicle_id integer, use reg as look up into vdata
+        # date text, map to date
+        # litres real, map to 'litres'
+        # ppl real, map to 'ppl'
+        # trip real, map to 'trip'
+        # odo integer, map to 'odo'
+        # cost real, calculate as (ppl * litres), store to 2 d.p.
+        # mpg real, map to 'mpg'
+        # notes text, map to 'notes'
+        cur.execute("insert or replace into fuel values (?,?,?,?,?,?,?,?,?,?)", [rec['fuel_id'], rec['vehicle_id'], rec['date'], rec['litres'], rec['ppl'], rec['trip'], rec['odo'], rec['cost'], rec['mpg'], rec['notes']])
     elif tbl == 'vehicles':
         # vehicle_id integer, no data, unique key
         # reg_no text, map to 'reg'
@@ -177,9 +186,6 @@ def save(tbl, rec):
         # tyre_cap real,no data, 0
         # tyre_type text,no data, ''
         # notes text, no data, ''
-        cols = 'vehicle_id, reg_no, make, model, year, purchase_price, purchase_date, fuel_cap, fuel_type, oil_cap, oil_type, tyre_cap, tyre_type, notes'
-        sql = "insert or replace into vehicles ({0}) values ({1}, '{2}', '{3}', '{4}', {5}, {6}, '{7}', {8}, '{9}', {10}, '{11}', {12}, '{13}', '{14}')"
-        print(rec)
         cur.execute('insert or replace into vehicles values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [rec['vehicle_id'], rec['reg_no'], rec['make'], rec['model'], rec['year'], rec['purchase_price'], rec['purchase_date'], rec['fuel_cap'], rec['fuel_type'], rec['oil_cap'], rec['oil_type'], rec['tyre_cap'], rec['tyre_type'], rec['notes']])
     else:
         print('Unrecognised table:', tbl)
@@ -198,9 +204,10 @@ def close():
 Choose vehicle by reg
 '''
 def choose_vehicle():
+    global vehicles
     num = 1
     for v in vehicles:
-        print('{0}) {1}'.format(num, v['reg']))
+        print('{0}) {1}'.format(num, v['reg_no']))
         num +=1
     print('0) Back')
 
@@ -210,7 +217,7 @@ def choose_vehicle():
     if option == 0:
         main_menu()
     elif (option > 0 and option <= len(vehicles)):
-        return vehicles[option-1]['reg']
+        return vehicles[option-1]
     else:
         choose_vehicle()
 
@@ -219,6 +226,7 @@ Get vehicle record by registration
 If no vehicle with that reg, warn and call main_menu
 '''
 def get_vehicle(reg):
+    global vehicles
     vehicle = None
     for v in vehicles:
         if v['reg'] == reg:
@@ -235,19 +243,19 @@ Add new record, save to fuel.dat
 '''
 def add_record():
     record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
-    reg = choose_vehicle()
-    print('\nAdd Record for {}:'.format(record['reg']))
-    update_record(reg)
+    vehicle = choose_vehicle()
+    print('\nAdd Record for {}:'.format(vehicle['reg_no']))
+    update_record(vehicle)
 
 '''
 Get vehicle record.
 Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
 '''
 def choose_record():
-    reg = choose_vehicle()
-    print('\nEdit Record for {}:'.format(reg))
+    vehicle = choose_vehicle()
+    print('\nEdit Record for {}:'.format(vehicle['reg_no']))
     # get date-sorted list of fuel for the selected vehicle
-    recs = get_fuel(reg)
+    recs = get_fuel(vehicle)
 
     num=1
     print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
@@ -264,7 +272,7 @@ def choose_record():
         if option == 0:
             main_menu()
         elif (option > 0 and option <= len(recs)):
-            update_record(reg, recs[option-1])
+            update_record(vehicle, recs[option-1])
         else:
             choose_record()
     except Exception as err:
@@ -275,24 +283,24 @@ def choose_record():
 '''
 Create or update a fuel record
 '''
-def update_record(reg=None, rec=None):
-    record = {'date':'yyyy/mm/dd', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
+def update_record(vehicle=None, rec=None):
+    record = frec.copy()#{'date':'yyyy/mm/dd', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
     last = None
     isNew = True
 
     # did they pass us a vehicle?
-    if (reg == None):
-        reg = choose_vehicle()
+    if (vehicle == None):
+        vehicle = choose_vehicle()
 
     # set reg for record
-    record['reg']=reg
+    record['vehicle_id']=vehicle['vehicle_id']
        
     # are we adding a new one or updating an old one?
     if (rec == None):
         # adding new, so get the previous value.
-        last = last_record(reg)
+        last = last_record(vehicle)
         rec = record
-        rec['reg'] = reg
+        rec['vehicle_id'] = vehicle['vehicle_id']
     else:
         record = rec
         isNew = False
@@ -328,14 +336,12 @@ def update_record(reg=None, rec=None):
 
     calc_mpg(record, False)
     print('\n Calculated MPG: {0}'.format(record['mpg']))
-    print(record)
-
 
     # update database
     save('fuel', record)
 
     # generate graph
-    #graph(reg)
+    graph(vehicle)
     main_menu()
 
 '''
@@ -353,10 +359,10 @@ def calc_mpg(record, doSave):
 '''
 Get last record for this vehicle
 '''
-def last_record(reg):
+def last_record(vehicle):
     curr = None
     for record in fuel:
-        if record['reg'] == reg:
+        if record['vehicle_id'] == vehicle['vehicle_id']:
             if curr == None:
                 curr = record
             else:
@@ -369,43 +375,44 @@ def last_record(reg):
 Get summary record.
 If one exists in collection return that, else, generate a new one
 '''
-def get_summary(reg):
+def get_summary(vehicle):
     sum_rec = None
     for s in summaries:
-        if s['reg'] == reg:
+        if s['reg_no'] == vehicle['reg_no']:
             sum_rec = s
             break
 
     if sum_rec == None:
-        sum_rec = summary(reg)
+        sum_rec = summary(vehicle)
 
     return sum_rec
 
 '''
 Create/update summary fuel for a vehicle
-if no reg passed, prompt user to choose, calculate, save and display results
-if reg passed, calculate, save and return results
+if no vehicle passed, prompt user to choose, calculate, save and display results
+if vehicle passed, calculate, save and return results
 '''
-def summary(r=None):
-    reg = None
-    if r == None:
-        reg = choose_vehicle()
+def summary(v=None):
+    vehicle=None
+    if v == None:
+        vehicle = choose_vehicle()
     else:
-        reg = r
+        vehicle = v
+
     mpg={'avg':0.0, 'min':float('inf'), 'max':0.0}
     trip={'avg':0.0, 'min':float('inf'), 'max':0.0, 'total':0.0}
     ppl={'avg':0.0, 'min':float('inf'), 'max':0.0}
     sum_rec = None
 
-    for s in summaries:
-        if s['reg'] == reg:
-            sum_rec = s
-            break
+#    for s in summaries:
+#        if s['reg'] == reg:
+#            sum_rec = s
+#            break
 
     num=0 #number of matching fuel
     for record in fuel:
-        if record['reg'] == reg:
-            calc_mpg(record, True)
+        if record['vehicle_id'] == vehicle['vehicle_id']:
+            #calc_mpg(record, True)
             num+=1
             mpg['min']=min(mpg['min'], record['mpg'])
             mpg['max']=max(mpg['max'], record['mpg'])
@@ -426,11 +433,10 @@ def summary(r=None):
         sum_rec['trip']=trip
         sum_rec['ppl']=ppl
     else:
-        sum_rec = {'mpg':mpg, 'trip':trip, 'ppl':ppl, 'reg':reg}
-        summaries.append(sum_rec)
+        sum_rec = {'mpg':mpg, 'trip':trip, 'ppl':ppl, 'reg_no':vehicle['reg_no']}
     
-    if r == None:
-        print('\nSummary for {0}:'.format(reg))
+    if v == None:
+        print('\nSummary for {0}:'.format(vehicle['reg_no']))
         print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(mpg['min'], mpg['avg'], mpg['max']))
         print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(trip['min'], trip['avg'], trip['max']))
         print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(ppl['min'], ppl['avg'], ppl['max']))
@@ -443,20 +449,19 @@ def summary(r=None):
 '''
 Based on chosen vehicle's average MPG, calculate max distance travelable
 '''
-def predict(reg=None):
-    if reg == None:
-        reg = choose_vehicle()
+def predict(vehicle=None):
+    if vehicle == None:
+        vehicle = choose_vehicle()
 
-    print('Prediction for {0}'.format(reg))
-    vehicle = get_vehicle(reg)
-    sum_rec = get_summary(reg)
+    print('Prediction for {0}'.format(vehicle['reg_no']))
+    sum_rec = get_summary(vehicle)
 
     ftcg = vehicle['fuel_cap'] / ltr_gal_conv
     prediction = sum_rec['mpg']['avg'] * ftcg
     print('{:.2f} miles'.format(prediction))
     main_menu()
 
-def get_fuel(reg):
+def get_fuel(vehicle):
     # extract fuel for this vehicle, store in temporary
     mpg_min=99999999
     mpg_max = 0
@@ -466,15 +471,15 @@ def get_fuel(reg):
     dmax=0
     drange = 0
     for r in fuel:
-        if r['reg'] == reg:
+        if r['vehicle_id'] == vehicle['vehicle_id']:
             d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
             d = (d-datetime.datetime(1970,1,1)).total_seconds()
             r['secs'] = d
             m = r['mpg']
-            dmax  =max(dmax, d)
-            dmin  =min(dmin, d)
-            mpg_max  =max(mpg_max, m)
-            mpg_min  =min(mpg_min, m)
+            dmax = max(dmax, d)
+            dmin = min(dmin, d)
+            mpg_max = max(mpg_max, m)
+            mpg_min = min(mpg_min, m)
 
             recs.append(r)
             num += 1
@@ -488,13 +493,11 @@ def get_fuel(reg):
 For a vehicle, create an SVG graph showing the MPG over time.
 Include average MPG.
 '''
-def graph(reg=None):
+def graph(vehicle=None):
     global fuel
-    if reg == None:
-        reg = choose_vehicle()
-    vehicle = get_vehicle(reg)
-    sum_rec = get_summary(reg)
-    print('graph')
+    if vehicle == None:
+        vehicle = choose_vehicle()
+    sum_rec = get_summary(vehicle)
     mpg_avg = sum_rec['mpg']['avg']
     #mpg_max = sum_rec['mpg']['max']
     #mpg_min = sum_rec['mpg']['min']
@@ -511,7 +514,7 @@ def graph(reg=None):
     dmax=0
     drange = 0
     for r in fuel:
-        if r['reg'] == reg:
+        if r['vehicle_id'] == vehicle['vehicle_id']:
             d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
             d = (d-datetime.datetime(1970,1,1)).total_seconds()
             calc_mpg(r, False)
@@ -586,9 +589,9 @@ def graph(reg=None):
 
 
     #print(inner_svg)
-    svg_fname = 'mpg-{}.svg'.format(reg)
+    svg_fname = 'mpg-{}.svg'.format(vehicle['reg_no'])
     f = open(svg_fname, 'w')
-    f.write(svg.format(reg, inner_svg)+'\n')
+    f.write(svg.format(vehicle['reg_no'], inner_svg)+'\n')
     f.close()
     print('File at ',svg_fname)
 
