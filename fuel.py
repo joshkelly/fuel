@@ -336,6 +336,7 @@ def update_record(vehicle=None, rec=None):
 
     calc_mpg(record, False)
     print('\n Calculated MPG: {0}'.format(record['mpg']))
+    print(record)
 
     # update database
     save('fuel', record)
