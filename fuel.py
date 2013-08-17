@@ -16,10 +16,12 @@ summaries = []
 
 vrec = {'vehicle_id' : None, 'reg_no' :'', 'make' :'', 'model' :'', 'year' : 0, 'purchase_price' : 0, 'purchase_date' :'', 'fuel_cap' : 0, 'fuel_type' :'', 'oil_cap' : 0, 'oil_type' :'', 'tyre_cap' : 0, 'tyre_type' :'', 'notes' :''}
 frec = {'fuel_id':None, 'vehicle_id':0, 'date':'', 'litres':0, 'ppl':0, 'trip':0, 'odo':0, 'cost':0, 'mpg':0, 'notes':''}
+srec = {'service_id':None, 'vehicle_id':0, 'date':'', 'cost':0, 'odo':0, 'item':'', 'notes':''}
 
 forms={
     'vehicle':['reg_no', 'make', 'model', 'year', 'purchase_price', 'purchase_date', 'fuel_cap', 'fuel_type', 'oil_cap', 'oil_type', 'tyre_cap', 'tyre_type', 'notes'],
-    'fuel':['vehicle_id', 'date', 'litres', 'ppl', 'trip', 'odo', 'cost', 'notes']
+    'fuel':['vehicle_id', 'date', 'litres', 'ppl', 'trip', 'odo', 'cost', 'notes'],
+    'service':['date', 'cost', 'odo', 'item', 'notes']
 }
 
 svg = '''
@@ -30,18 +32,6 @@ svg = '''
     {1}
 </svg>
 '''
-
-def add_vehicle():
-    '''
-    Add new vehicle record
-    '''
-    global vehicles
-    vehicle = vrec.copy()
-    print('Add Vehicle:')
-    query('vehicle', vehicle)
-    vehicles.append(vehicle)
-    save('vehicles', vehicle)
-    vehicle_menu()
 
 def query(tbl, record):
     '''
@@ -57,6 +47,17 @@ def query(tbl, record):
         e = input('{1} ({0}):'.format(record[element], label))
         if e:
             record[element] = e
+
+def add_vehicle():
+    '''
+    Add new vehicle record
+    '''
+    global vehicles
+    vehicle = vrec.copy()
+    print('Add Vehicle:')
+    query('vehicle', vehicle)
+    save('vehicles', vehicle)
+    vehicle_menu()
 
 def edit_vehicle():
     '''
@@ -97,7 +98,7 @@ def load():
     Load data from DB.
     Establish connection and get cursor.
     '''
-    global conn, cur, fuel, vehicles
+    global conn, cur, fuel, vehicles, service
     if conn == None:
         conn = mkdb.init()
         conn.row_factory = sqlite3.Row
@@ -111,6 +112,10 @@ def load():
     cur.execute('select * from vehicles')
     vehicles = [dict(row) for row in cur]
     print('Loaded {} vehicles.'.format(len(vehicles)))
+
+    cur.execute('select * from service')
+    service = [dict(row) for row in cur]
+    print('Loaded {} service records.'.format(len(service)))
 
 def save(tbl, rec):
     '''
@@ -146,6 +151,15 @@ def save(tbl, rec):
         # tyre_type text,no data, ''
         # notes text, no data, ''
         cur.execute('insert or replace into vehicles values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [rec['vehicle_id'], rec['reg_no'], rec['make'], rec['model'], rec['year'], rec['purchase_price'], rec['purchase_date'], rec['fuel_cap'], rec['fuel_type'], rec['oil_cap'], rec['oil_type'], rec['tyre_cap'], rec['tyre_type'], rec['notes']])
+    elif tbl == 'service':
+        # service_id integer, primary key and index
+        # vehicle_id integer, fkey into vehicles
+        # date text, date of service item
+        # cost real, cost of item
+        # odo integer, optional
+        # item text, description of item
+        # notes text, free text
+        cur.execute('insert or replace into service values (?,?,?,?,?,?,?)', [rec['service_id'], rec['vehicle_id'], rec['date'], rec['cost'], rec['odo'], rec['item'], rec['notes']])
     else:
         print('Unrecognised table:', tbl)
 
@@ -311,6 +325,76 @@ def last_fuel(vehicle):
                     curr = record
 
     return curr
+
+def add_service():
+    '''
+    Add new service record
+    '''
+    service = srec.copy()
+    vehicle = choose_vehicle()
+    service['vehicle_id']=vehicle['vehicle_id']
+    print('Add Service Record:')
+    query('service', service)
+    save('service', service)
+    main_menu()
+
+def edit_service():
+    '''
+    Modify a service record
+    '''
+    print('Modify Service:')
+    vehicle = choose_vehicle()
+    service = choose_service(vehicle)
+    print(service)
+    if service:
+        print('now here')
+        query('service', service)
+
+        save('service', service)
+
+    main_menu()
+
+
+def choose_service(vehicle=None):
+    '''
+    Get vehicle record.
+    Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
+    '''
+    service = None
+    if not vehicle:
+        vehicle = choose_vehicle()
+    print('\nEdit Record for {}:'.format(vehicle['reg_no']))
+    # get date-sorted list of fuel for the selected vehicle
+    cur.execute('select * from service where vehicle_id="{0}" order by date asc'.format(vehicle['vehicle_id']))
+    recs = [dict(row) for row in cur]
+
+    num=1
+    print('X) yyyy/mm/dd Item Cost')
+    for r in recs:
+        print('{0}) {1} {2} {3}'.format(num, r['date'], r['item'], r['cost']))
+        num = num +1
+    print('0) Back')
+
+    option = input('Record? :')
+
+    try:
+        option = int(option)
+        # go ahead if option in range, else, re-build menu
+        if option == 0:
+            main_menu()
+        elif (option > 0 and option <= len(recs)):
+            print('here')
+            service = recs[option-1]
+            print(service)
+        else:
+            choose_service()
+    except Exception as err:
+        print('Bad Value passed to menu')
+        print(err)
+        choose_service(vehicle)
+
+    print(service)
+    return service
 
 def get_summary(vehicle):
     '''
@@ -590,6 +674,8 @@ def main_menu():
     4) Predict Range
     5) Economy Graph
     6) Vehicle Management
+    7) Add Service Record
+    8) Edit Service Record
     0) Quit
     ''')
     processed = False
@@ -617,6 +703,10 @@ def main_menu():
             main_menu()
         elif option == 6:
             vehicle_menu()
+        elif option == 7:
+            add_service()
+        elif option == 8:
+            choose_service()
         elif option == 0:
             mkdb.close()
             exit()
