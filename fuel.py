@@ -54,20 +54,11 @@ def edit_vehicle():
     Modify a vehicle record
     '''
     print('Modify Vehicle:')
-    num = 1
+    vehicle = choose_vehicle()
+    for e in vehicle:
+        query_vehicle(vehicle, e)
 
-    for v in vehicles:
-        print('{0}) {1}'.format(num, v['reg_no']))
-        num +=1
-
-    print('0) Back')
-    option = int(input('Option? :'))
-    if option != 0:
-        vehicle = vehicles[option-1]
-        for e in vehicle:
-            query_vehicle(vehicle, e)
-
-        save('vehicles', vehicle)
+    save('vehicles', vehicle)
 
     vehicle_menu()
 
@@ -86,55 +77,12 @@ def remove_vehicle():
     '''
     global vehicles, cur
     print('Remove Vehicle:')
-    num = 1
-    for v in vehicles:
-        print('{0}) {1}'.format(num, v['reg_no']))
-        num +=1
-    print('0) Back')
-    option = input('Option? :')
-
-    # check option is numeric
-    if option.isnumeric():
-        option = int(option)
-    else:
-        remove_vehicle()
-
-    if option != 0:
-        vehicle = vehicles[option-1]
-        confirm = input('Remove {0}? [y/N]:'.format(vehicle['reg_no'])).lower()
-        if confirm == 'y':
-            cur.execute('delete from vehicles where reg_no="{0}"'.format(vehicle['reg_no']))
-            load()
+    vehicle = choose_vehicle()
+    confirm = input('Remove {0}? [y/N]:'.format(vehicle['reg_no'])).lower()
+    if confirm == 'y':
+        cur.execute('delete from vehicles where reg_no="{0}"'.format(vehicle['reg_no']))
+        load()
     vehicle_menu()
-
-def vehicle_menu():
-    '''
-    Manage vehicles sub-main_menu
-    '''
-    print('''Vehicles:
-    1) Add
-    2) Edit
-    3) List
-    4) Remove
-    0) Back to Main Menu
-    ''')
-    option = input('Option? :')
-
-    if(option):
-        option = int(option)
-        
-        if option == 0:
-            main_menu()
-        elif option == 1:
-            add_vehicle()
-        elif option == 2:
-            edit_vehicle()
-        elif option == 3:
-            list_vehicles()
-        elif option == 4:
-            remove_vehicle()
-        else:
-            vehicle_menu()
 
 def load():
     '''
@@ -143,7 +91,6 @@ def load():
     '''
     global conn, cur, fuel, vehicles
     if conn == None:
-        #conn = sqlite3.connect('ldc_fuel.db')
         conn = mkdb.init()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -207,32 +154,28 @@ def choose_vehicle():
         num +=1
     print('0) Back')
 
-    option = int(input('Vehicle? :'))
+    processed = False
+    option = None
+    option = input('Vehicle? :')
 
-    # go ahead if option in range, else, re-build main_menu
-    if option == 0:
-        main_menu()
-    elif (option > 0 and option <= len(vehicles)):
-        return vehicles[option-1]
-    else:
+    if not option:
         choose_vehicle()
 
-def get_vehicle(reg):
-    '''
-    Get vehicle record by registration
-    If no vehicle with that reg, warn and call main_menu
-    '''
-    global vehicles
-    vehicle = None
-    for v in vehicles:
-        if v['reg'] == reg:
-            vehicle = v
-            break
-    if vehicle == None:
-        print('No vehicle with that registration [{}]'.format(reg))
-        main_menu()
+    # check option is numeric
+    if option.isnumeric():
+        processed = True
+        option = int(option)
+        # go ahead if option in range, else, re-build main_menu
+        if option == 0:
+            main_menu()
+        elif (option > 0 and option <= len(vehicles)):
+            return vehicles[option-1]
+        else:
+            processed = False
 
-    return vehicle
+    if not processed:
+        print ('Invalid option [{0}]'.format(option))
+        choose_vehicle()
 
 def add_fuel():
     '''
@@ -590,6 +533,46 @@ def graph(vehicle=None):
     f.close()
     print('File at ',svg_fname)
 
+def vehicle_menu():
+    '''
+    Manage vehicles sub-main_menu
+    '''
+    print('''Vehicles:
+    1) Add
+    2) Edit
+    3) List
+    4) Remove
+    0) Back to Main Menu
+    ''')
+    processed = False
+    option = None
+    option = input('Option? :')
+
+    if not option:
+        vehicle_menu()
+
+    # check option is numeric
+    if option.isnumeric():
+        processed = True
+        option = int(option)
+
+        if option == 0:
+            main_menu()
+        elif option == 1:
+            add_vehicle()
+        elif option == 2:
+            edit_vehicle()
+        elif option == 3:
+            list_vehicles()
+        elif option == 4:
+            remove_vehicle()
+        else:
+            processed = False
+
+    if not processed:
+        print('Invalid option [{0}]'.format(option))
+        vehicle_menu()
+
 def main_menu():
     '''
     Print main menu
@@ -603,11 +586,18 @@ def main_menu():
     6) Vehicle Management
     0) Quit
     ''')
+    processed = False
+    option = None
     option = input('Option? :')
 
-    #try:
-    if(option):
+    if not option:
+        main_menu()
+
+    # check option is numeric
+    if option.isnumeric():
+        processed = True
         option = int(option)
+
         if option == 1:
             add_fuel()
         elif option == 3:
@@ -625,11 +615,11 @@ def main_menu():
             mkdb.close()
             exit()
         else:
-            main_menu()
-    #except Exception as e:
-    #    print('Bad value passed to main_menu')
-    #    print(e)
-    #    main_menu()
+            processed = False
+
+    if not processed:
+        print('Invalid option [{0}]'.format(option))
+        main_menu()
 
 def usage():
     print('hello')
