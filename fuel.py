@@ -241,17 +241,17 @@ def get_vehicle(reg):
 '''
 Add new record, save to fuel.dat
 '''
-def add_record():
+def add_fuel():
     record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
     vehicle = choose_vehicle()
     print('\nAdd Record for {}:'.format(vehicle['reg_no']))
-    update_record(vehicle)
+    update_fuel(vehicle)
 
 '''
 Get vehicle record.
 Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
 '''
-def choose_record():
+def choose_fuel():
     vehicle = choose_vehicle()
     print('\nEdit Record for {}:'.format(vehicle['reg_no']))
     # get date-sorted list of fuel for the selected vehicle
@@ -272,18 +272,18 @@ def choose_record():
         if option == 0:
             main_menu()
         elif (option > 0 and option <= len(recs)):
-            update_record(vehicle, recs[option-1])
+            update_fuel(vehicle, recs[option-1])
         else:
-            choose_record()
+            choose_fuel()
     except Exception as err:
         print('Bad Value passed to menu')
         print(err)
-        choose_record()
+        choose_fuel()
 
 '''
 Create or update a fuel record
 '''
-def update_record(vehicle=None, rec=None):
+def update_fuel(vehicle=None, rec=None):
     record = frec.copy()#{'date':'yyyy/mm/dd', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
     last = None
     isNew = True
@@ -298,7 +298,7 @@ def update_record(vehicle=None, rec=None):
     # are we adding a new one or updating an old one?
     if (rec == None):
         # adding new, so get the previous value.
-        last = last_record(vehicle)
+        last = last_fuel(vehicle)
         rec = record
         rec['vehicle_id'] = vehicle['vehicle_id']
     else:
@@ -360,7 +360,7 @@ def calc_mpg(record, doSave):
 '''
 Get last record for this vehicle
 '''
-def last_record(vehicle):
+def last_fuel(vehicle):
     curr = None
     for record in fuel:
         if record['vehicle_id'] == vehicle['vehicle_id']:
@@ -612,11 +612,11 @@ def main_menu():
     if(option):
         option = int(option)
         if option == 1:
-            add_record()
+            add_fuel()
         elif option == 3:
             summary()
         elif option == 2:
-            choose_record()
+            choose_fuel()
         elif option == 4:
             predict()
         elif option == 5:
