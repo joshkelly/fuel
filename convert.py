@@ -105,8 +105,6 @@ def main():
     create_fuel()
     create_misc()
 
-    conn.commit()
-    conn.close()
-
+    mkdb.close()
 if __name__ == "__main__":
     main()

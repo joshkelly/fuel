@@ -61,6 +61,14 @@ def create_service():
     cur.execute('''create table if not exists service (service_id integer, vehicle_id integer, date text, cost real, odo integer, item text, notes text, primary key (service_id asc))''')
     cur.execute('''create unique index if not exists service_index on service (service_id)''')
 
+def close():
+    '''
+    Commit and close DB connection
+    '''
+    global conn
+    conn.commit()
+    conn.close()
+
 def init():
     '''
     Initialise db, connection and cursor.

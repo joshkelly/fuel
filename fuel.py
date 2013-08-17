@@ -26,10 +26,10 @@ svg = '''
 </svg>
 '''
 
-'''
-Add new vehicle record
-'''
 def add_vehicle():
+    '''
+    Add new vehicle record
+    '''
     global vehicles
     vehicle = vrec.copy()
     print('Add Vehicle:')
@@ -39,20 +39,20 @@ def add_vehicle():
     save('vehicles', vehicle)
     vehicle_menu()
 
-'''
-Handler for data query
-'''
 def query_vehicle(vehicle, element):
+    '''
+    Handler for data query
+    '''
     if element != 'vehicle_id': 
         label = string.capwords(element.replace('_', ' '))
         e = input('{1} ({0}):'.format(vehicle[element], label))
         if e:
             vehicle[element] = e
 
-'''
-Modify a vehicle record
-'''
 def edit_vehicle():
+    '''
+    Modify a vehicle record
+    '''
     print('Modify Vehicle:')
     num = 1
 
@@ -71,19 +71,19 @@ def edit_vehicle():
 
     vehicle_menu()
 
-'''
-List known vehicles
-'''
 def list_vehicles():
+    '''
+    List known vehicles
+    '''
     print('List Vehicles:')
     for v in vehicles:
         print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg_no'], v['fuel_cap']))
     vehicle_menu()
 
-'''
-Remove vehicle from data
-'''
 def remove_vehicle():
+    '''
+    Remove vehicle from data
+    '''
     global vehicles, cur
     print('Remove Vehicle:')
     num = 1
@@ -107,10 +107,10 @@ def remove_vehicle():
             load()
     vehicle_menu()
 
-'''
-Manage vehicles sub-main_menu
-'''
 def vehicle_menu():
+    '''
+    Manage vehicles sub-main_menu
+    '''
     print('''Vehicles:
     1) Add
     2) Edit
@@ -136,11 +136,11 @@ def vehicle_menu():
         else:
             vehicle_menu()
 
-'''
-Load data from DB.
-Establish connection and get cursor.
-'''
 def load():
+    '''
+    Load data from DB.
+    Establish connection and get cursor.
+    '''
     global conn, cur, fuel, vehicles
     if conn == None:
         #conn = sqlite3.connect('ldc_fuel.db')
@@ -158,6 +158,10 @@ def load():
     print('Loaded {} vehicles.'.format(len(vehicles)))
 
 def save(tbl, rec):
+    '''
+    Save data to DB.
+    Check `tbl` to handle `rec` properly 
+    '''
     global cur
     if tbl == 'fuel':
         # fuel_id integer, primary key
@@ -192,18 +196,10 @@ def save(tbl, rec):
 
     load()
 
-'''
-Commit and close DB connection
-'''
-def close():
-    global conn
-    conn.commit()
-    conn.close()
-
-'''
-Choose vehicle by reg
-'''
 def choose_vehicle():
+    '''
+    Choose vehicle by reg
+    '''
     global vehicles
     num = 1
     for v in vehicles:
@@ -221,11 +217,11 @@ def choose_vehicle():
     else:
         choose_vehicle()
 
-'''
-Get vehicle record by registration
-If no vehicle with that reg, warn and call main_menu
-'''
 def get_vehicle(reg):
+    '''
+    Get vehicle record by registration
+    If no vehicle with that reg, warn and call main_menu
+    '''
     global vehicles
     vehicle = None
     for v in vehicles:
@@ -238,20 +234,20 @@ def get_vehicle(reg):
 
     return vehicle
 
-'''
-Add new record, save to fuel.dat
-'''
 def add_fuel():
+    '''
+    Add new record, save to fuel.dat
+    '''
     record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
     vehicle = choose_vehicle()
     print('\nAdd Record for {}:'.format(vehicle['reg_no']))
     update_fuel(vehicle)
 
-'''
-Get vehicle record.
-Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
-'''
 def choose_fuel():
+    '''
+    Get vehicle record.
+    Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
+    '''
     vehicle = choose_vehicle()
     print('\nEdit Record for {}:'.format(vehicle['reg_no']))
     # get date-sorted list of fuel for the selected vehicle
@@ -280,11 +276,11 @@ def choose_fuel():
         print(err)
         choose_fuel()
 
-'''
-Create or update a fuel record
-'''
 def update_fuel(vehicle=None, rec=None):
-    record = frec.copy()#{'date':'yyyy/mm/dd', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
+    '''
+    Create or update a fuel record
+    '''
+    record = frec.copy()
     last = None
     isNew = True
 
@@ -345,22 +341,17 @@ def update_fuel(vehicle=None, rec=None):
     graph(vehicle)
     main_menu()
 
-'''
-Calculate MPG for record.
-If `doSave`, then update fuel file
-'''
 def calc_mpg(record, doSave):
-    #if not 'mpg' in record:
+    '''
+    Calculate MPG for record.
+    '''
     record['gallons'] = record['litres']/ltr_gal_conv
     record['mpg'] = record['trip']/record['gallons']
 
-    #if doSave:
-    #    save(rdat, fuel)
-
-'''
-Get last record for this vehicle
-'''
 def last_fuel(vehicle):
+    '''
+    Get last record for this vehicle
+    '''
     curr = None
     for record in fuel:
         if record['vehicle_id'] == vehicle['vehicle_id']:
@@ -372,11 +363,11 @@ def last_fuel(vehicle):
 
     return curr
 
-'''
-Get summary record.
-If one exists in collection return that, else, generate a new one
-'''
 def get_summary(vehicle):
+    '''
+    Get summary record.
+    If one exists in collection return that, else, generate a new one
+    '''
     sum_rec = None
     for s in summaries:
         if s['reg_no'] == vehicle['reg_no']:
@@ -388,12 +379,12 @@ def get_summary(vehicle):
 
     return sum_rec
 
-'''
-Create/update summary fuel for a vehicle
-if no vehicle passed, prompt user to choose, calculate, save and display results
-if vehicle passed, calculate, save and return results
-'''
 def summary(v=None):
+    '''
+    Create/update summary fuel for a vehicle
+    if no vehicle passed, prompt user to choose, calculate, save and display results
+    if vehicle passed, calculate, save and return results
+    '''
     vehicle=None
     if v == None:
         vehicle = choose_vehicle()
@@ -447,10 +438,10 @@ def summary(v=None):
     else:
         return sum_rec
 
-'''
-Based on chosen vehicle's average MPG, calculate max distance travelable
-'''
 def predict(vehicle=None):
+    '''
+    Based on chosen vehicle's average MPG, calculate max distance travelable
+    '''
     if vehicle == None:
         vehicle = choose_vehicle()
 
@@ -463,6 +454,9 @@ def predict(vehicle=None):
     main_menu()
 
 def get_fuel(vehicle):
+    '''
+    Get all fule record this vehicle
+    '''
     # extract fuel for this vehicle, store in temporary
     mpg_min=99999999
     mpg_max = 0
@@ -490,11 +484,11 @@ def get_fuel(vehicle):
     recs = sorted(recs, key=itemgetter('secs'))
     return recs
 
-'''
-For a vehicle, create an SVG graph showing the MPG over time.
-Include average MPG.
-'''
 def graph(vehicle=None):
+    '''
+    For a vehicle, create an SVG graph showing the MPG over time.
+    Include average MPG.
+    '''
     global fuel
     if vehicle == None:
         vehicle = choose_vehicle()
@@ -597,6 +591,9 @@ def graph(vehicle=None):
     print('File at ',svg_fname)
 
 def main_menu():
+    '''
+    Print main menu
+    '''
     print('''\nFuel Economy and Service Records
     1) Add Fuel Record
     2) Edit Fuel Record
@@ -625,7 +622,7 @@ def main_menu():
         elif option == 6:
             vehicle_menu()
         elif option == 0:
-            close()
+            mkdb.close()
             exit()
         else:
             main_menu()
@@ -637,12 +634,12 @@ def main_menu():
 def usage():
     print('hello')
 
-'''
-load record data
-load vehicle data
-show main menu
-'''
 def main():
+    '''
+    load record data
+    load vehicle data
+    show main menu
+    '''
     global debug
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hd", ["help", "debug"])
