@@ -11,9 +11,6 @@ vehicles = []
 rdat = 'records.dat'
 records = []
 
-vehicle = {'make':'', 'model':'', 'year':'', 'reg':'', 'ftc':0}
-record = {'date':'', 'litres':0.0, 'ppl':0.0, 'trip':0.0, 'odo':0, 'reg':'', 'notes':''}
-
 def load(fname, data):
     if len(data) == 0:
         f=0
