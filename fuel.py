@@ -426,7 +426,8 @@ def summary(v=None):
     sum_rec = {
         'mpg':{'avg':0.0, 'min':float('inf'), 'max':0.0},
         'trip':{'avg':0.0, 'min':float('inf'), 'max':0.0, 'total':0.0},
-        'ppl':{'avg':0.0, 'min':float('inf'), 'max':0.0}
+        'ppl':{'avg':0.0, 'min':float('inf'), 'max':0.0},
+        'cost':{'avg':0.0, 'min':float('inf'), 'max':0.0, 'total':0.0}
     }
 
     sql = "select min({0}) as min, max({0}) as max, avg({0}) as avg, sum({0}) as sum from fuel where vehicle_id='{1}'"
@@ -437,17 +438,27 @@ def summary(v=None):
         sum_rec[s]['avg']=recs[0]['avg']
         sum_rec[s]['min']=recs[0]['min']
         sum_rec[s]['max']=recs[0]['max']
-        if s == 'trip':
+        if s == 'trip' or s == 'cost':
             sum_rec[s]['total']=recs[0]['sum']
 
     sum_rec['reg_no']=vehicle['reg_no']
     
+    sql = "select sum(cost) from service where vehicle_id='{0}'"
+    cur.execute(sql.format(vehicle['vehicle_id']))
+    sum_rec['cost']
+
+
     if v == None:
         print('\nSummary for {0}:'.format(vehicle['reg_no']))
         print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(sum_rec['mpg']['min'], sum_rec['mpg']['avg'], sum_rec['mpg']['max']))
         print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(sum_rec['trip']['min'], sum_rec['trip']['avg'], sum_rec['trip']['max']))
         print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(sum_rec['ppl']['min'], sum_rec['ppl']['avg'], sum_rec['ppl']['max']))
-        print('Total miles: {:.1f}'.format(sum_rec['trip']['total']))
+        print('Cost Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(sum_rec['cost']['min'], sum_rec['cost']['avg'], sum_rec['cost']['max']))
+        print('Total miles:\t\t {:.1f}'.format(sum_rec['trip']['total']))
+        print('Running cost:\t\t {:.2f}'.format(sum_rec['cost']['total']))
+        print('Total cost:\t\t {:.2f}'.format(sum_rec['cost']['total'] + vehicle['purchase_price']))
+        print('Running cost/mile:\t {:.2f}'.format(sum_rec['cost']['total']/sum_rec['trip']['total']))
+        print('Total cost/mile:\t {:.2f}'.format((sum_rec['cost']['total'] + vehicle['purchase_price'])/sum_rec['trip']['total']))
    
         main_menu()
     else:
