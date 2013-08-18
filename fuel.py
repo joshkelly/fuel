@@ -663,12 +663,12 @@ def main_menu():
     print('''\nFuel Economy and Service Records
     1) Add Fuel Record
     2) Edit Fuel Record
-    3) Show Summary
-    4) Predict Range
-    5) Economy Graph
-    6) Vehicle Management
-    7) Add Service Record
-    8) Edit Service Record
+    3) Add Service Record
+    4) Edit Service Record
+    5) Show Summary
+    6) Predict Range
+    7) Economy Graph
+    8) Vehicle Management
     0) Quit
     ''')
     processed = False
@@ -685,20 +685,20 @@ def main_menu():
 
         if option == 1:
             add_fuel()
-        elif option == 3:
+        elif option == 5:
             summary()
         elif option == 2:
             choose_fuel()
-        elif option == 4:
+        elif option == 6:
             predict()
-        elif option == 5:
+        elif option == 7:
             graph()
             main_menu()
-        elif option == 6:
-            vehicle_menu()
-        elif option == 7:
-            add_service()
         elif option == 8:
+            vehicle_menu()
+        elif option == 3:
+            add_service()
+        elif option == 4:
             edit_service()
         elif option == 0:
             mkdb.close()
