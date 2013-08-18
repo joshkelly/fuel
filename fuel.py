@@ -423,48 +423,31 @@ def summary(v=None):
     else:
         vehicle = v
 
-    mpg={'avg':0.0, 'min':float('inf'), 'max':0.0}
-    trip={'avg':0.0, 'min':float('inf'), 'max':0.0, 'total':0.0}
-    ppl={'avg':0.0, 'min':float('inf'), 'max':0.0}
-    sum_rec = None
+    sum_rec = {
+        'mpg':{'avg':0.0, 'min':float('inf'), 'max':0.0},
+        'trip':{'avg':0.0, 'min':float('inf'), 'max':0.0, 'total':0.0},
+        'ppl':{'avg':0.0, 'min':float('inf'), 'max':0.0}
+    }
 
-#    for s in summaries:
-#        if s['reg'] == reg:
-#            sum_rec = s
-#            break
+    sql = "select min({0}) as min, max({0}) as max, avg({0}) as avg, sum({0}) as sum from fuel where vehicle_id='{1}'"
 
-    num=0 #number of matching fuel
-    for record in fuel:
-        if record['vehicle_id'] == vehicle['vehicle_id']:
-            #calc_mpg(record, True)
-            num+=1
-            mpg['min']=min(mpg['min'], record['mpg'])
-            mpg['max']=max(mpg['max'], record['mpg'])
-            mpg['avg'] += record['mpg']
-            trip['min']=min(trip['min'], record['trip'])
-            trip['max']=max(trip['max'], record['trip'])
-            trip['total'] += record['trip']
-            ppl['min']=min(ppl['min'], record['ppl'])
-            ppl['max']=max(ppl['max'], record['ppl'])
-            ppl['avg'] += record['ppl']
+    for s in sum_rec:
+        cur.execute(sql.format(s, vehicle['vehicle_id']))
+        recs = [dict(row) for row in cur]
+        sum_rec[s]['avg']=recs[0]['avg']
+        sum_rec[s]['min']=recs[0]['min']
+        sum_rec[s]['max']=recs[0]['max']
+        if s == 'trip':
+            sum_rec[s]['total']=recs[0]['sum']
 
-    mpg['avg'] /= num
-    trip['avg'] = trip['total']/num
-    ppl['avg'] /= num
-
-    if sum_rec != None:
-        sum_rec['mpg']=mpg
-        sum_rec['trip']=trip
-        sum_rec['ppl']=ppl
-    else:
-        sum_rec = {'mpg':mpg, 'trip':trip, 'ppl':ppl, 'reg_no':vehicle['reg_no']}
+    sum_rec['reg_no']=vehicle['reg_no']
     
     if v == None:
         print('\nSummary for {0}:'.format(vehicle['reg_no']))
-        print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(mpg['min'], mpg['avg'], mpg['max']))
-        print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(trip['min'], trip['avg'], trip['max']))
-        print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(ppl['min'], ppl['avg'], ppl['max']))
-        print('Total miles: {:.2f}'.format(trip['total']))
+        print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(sum_rec['mpg']['min'], sum_rec['mpg']['avg'], sum_rec['mpg']['max']))
+        print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(sum_rec['trip']['min'], sum_rec['trip']['avg'], sum_rec['trip']['max']))
+        print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(sum_rec['ppl']['min'], sum_rec['ppl']['avg'], sum_rec['ppl']['max']))
+        print('Total miles: {:.1f}'.format(sum_rec['trip']['total']))
    
         main_menu()
     else:
@@ -487,7 +470,7 @@ def predict(vehicle=None):
 
 def get_fuel(vehicle):
     '''
-    Get all fule record this vehicle
+    Get all fuel record this vehicle
     '''
     # extract fuel for this vehicle, store in temporary
     mpg_min=99999999
