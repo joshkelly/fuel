@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import pdb
-import getopt, sys, datetime, sqlite3, string
+import getopt, sys, datetime, sqlite3, string, time
 import json
 import mkdb
 from operator import itemgetter
@@ -32,6 +32,12 @@ svg = '''
     {1}
 </svg>
 '''
+
+def toDate(ts):
+    return time.strftime("%Y/%m/%d", time.gmtime(ts))
+
+def toTimestamp(secs):
+    return time.mktime(time.strptime(sec, "%Y/%m/%d"))
 
 def query(tbl, record):
     '''
@@ -220,7 +226,7 @@ def choose_fuel():
     num=1
     print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
     for r in recs:
-        print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, r['date'], r['odo'], r['trip'], r['litres'], r['mpg']))
+        print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, toDate(r['date']), r['odo'], r['trip'], r['litres'], r['mpg']))
         num = num +1
     print('0) Back')
 
@@ -493,12 +499,9 @@ def get_fuel(vehicle):
     drange = 0
     for r in fuel:
         if r['vehicle_id'] == vehicle['vehicle_id']:
-            d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
-            d = (d-datetime.datetime(1970,1,1)).total_seconds()
-            r['secs'] = d
             m = r['mpg']
-            dmax = max(dmax, d)
-            dmin = min(dmin, d)
+            dmax = max(dmax, r['date'])
+            dmin = min(dmin, r['date'])
             mpg_max = max(mpg_max, m)
             mpg_min = min(mpg_min, m)
 
@@ -507,7 +510,7 @@ def get_fuel(vehicle):
 
     drange = dmax - dmin
     mpg_range = mpg_max - mpg_min
-    recs = sorted(recs, key=itemgetter('secs'))
+    recs = sorted(recs, key=itemgetter('date'))
     return recs
 
 def graph(vehicle=None):
