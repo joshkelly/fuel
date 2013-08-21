@@ -21,7 +21,7 @@ def create_fuel():
     global cur
     cur.execute('''create table if not exists fuel (fuel_id integer, vehicle_id integer, date real, litres real, ppl real, trip real, odo integer, cost real, mpg real, notes text, primary key (fuel_id asc))''')
     cur.execute('''create unique index if not exists fuel_index on fuel (fuel_id)''')
-    cur.execute('''insert or replace into version values (?,?)''', ['fuel', 2])
+    cur.execute('''insert or replace into versions values (?,?)''', ['fuel', 2])
 
 def create_vehicles():
     ''' 
@@ -45,7 +45,7 @@ def create_vehicles():
     #print ('create vehicles')
     cur.execute('''create table if not exists vehicles (vehicle_id integer, reg_no text, make text, model text, year integer, purchase_price real, purchase_date real, fuel_cap real, fuel_type text, oil_cap real, oil_type text, tyre_front_cap real, tyre_front_type text, tyre_rear_cap real, tyre_rear_type text, notes text, primary key(vehicle_id asc))''')
     cur.execute('''create unique index if not exists vehicle_index on vehicles (vehicle_id)''')
-    cur.execute('''insert or replace into version values (?,?)''', ['vehicles', 2])
+    cur.execute('''insert or replace into versions values (?,?)''', ['vehicles', 2])
 
 def create_service():
     '''
@@ -60,13 +60,13 @@ def create_service():
     '''
     global cur
     #print('create service')
-    cur.execute('''create table if not exists service (service_id integer, vehicle_id integer, date text, cost real, odo integer, item text, notes text, primary key (service_id asc))''')
+    cur.execute('''create table if not exists service (service_id integer, vehicle_id integer, date real, cost real, odo integer, item text, notes text, primary key (service_id asc))''')
     cur.execute('''create unique index if not exists service_index on service (service_id)''')
-    cur.execute('''insert or replace into version values (?,?)''', ['service', 2])
+    cur.execute('''insert or replace into versions values (?,?)''', ['service', 2])
 
-def create_version():
-    cur.execute('''create table if not exists version (name text, version integer, primary key(name))''')
-    cur.execute('''create unique index if not exists version_index on version (name)''')
+def create_versions():
+    cur.execute('''create table if not exists versions (name text, version integer, primary key(name))''')
+    cur.execute('''create unique index if not exists version_index on versions (name)''')
 
 def close():
     '''
@@ -87,7 +87,7 @@ def init():
     conn = sqlite3.connect('ldc_fuel.db')
     cur = conn.cursor()
 
-    create_version()
+    create_versions()
     create_fuel()
     create_vehicles()
     create_service()
