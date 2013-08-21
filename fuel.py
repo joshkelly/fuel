@@ -711,7 +711,9 @@ def main_menu():
         main_menu()
 
 def usage():
-    print('hello')
+    print('Usage: fuel.py [options]')
+    print('-h, --help print this message and exit')
+    print('-d, --debug turn on debug mode, extra output, no saving')
 
 def main():
     '''
@@ -732,6 +734,9 @@ def main():
     for o,a in opts:
         if o in ("-d", "--debug"):
             debug=True
+        elif o in ("-h", "--help"):
+            usage()
+            exit()
         else:
             assert False, "unhandled option"
 
