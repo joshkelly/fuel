@@ -33,11 +33,13 @@ svg = '''
 </svg>
 '''
 
-def toDate(ts):
-    return time.strftime("%Y/%m/%d", time.gmtime(ts))
+def to_date(secs):
+    '''Convert seconds to date string'''
+    return time.strftime("%Y/%m/%d", time.gmtime(secs))
 
-def toTimestamp(secs):
-    return time.mktime(time.strptime(sec, "%Y/%m/%d"))
+def to_seconds(date):
+    '''Convert date string to seconds'''
+    return time.mktime(time.strptime(date, "%Y/%m/%d"))
 
 def query(tbl, record):
     '''
@@ -226,7 +228,7 @@ def choose_fuel():
     num=1
     print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
     for r in recs:
-        print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, toDate(r['date']), r['odo'], r['trip'], r['litres'], r['mpg']))
+        print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, to_date(r['date']), r['odo'], r['trip'], r['litres'], r['mpg']))
         num = num +1
     print('0) Back')
 
@@ -271,32 +273,32 @@ def update_fuel(vehicle=None, rec=None):
         record = rec
         isNew = False
 
-    value = input('Date ({}):'.format(record['date']))
+    value = input('Date ({}):'.format(to_date(record['date'])))
     if value:
-        record['date'] = value
+        record['date'] = to_seconds(value)
 
-    value = input('Litres {}:'.format(record['litres']))
+    value = input('Litres ({}):'.format(record['litres']))
     if value:
         record['litres'] = float(value)
 
-    value = input('Price per Litre {}:'.format(record['ppl']))
+    value = input('Price per Litre ({}):'.format(record['ppl']))
     if value:
         record['ppl'] = float(value)
 
-    value = input('Odometer {}:'.format(record['odo']))
+    value = input('Odometer ({}):'.format(record['odo']))
     if value:
         record['odo'] = int(value)
 
     calc_trip = record['trip'] 
     if last:
         calc_trip = record['odo'] - last['odo']
-    trip = input('Trip: ({0})'.format(calc_trip))
+    trip = input('Trip ({0}):'.format(calc_trip))
     if trip:
         record['trip'] = float(trip)
     else:
         record['trip'] = calc_trip
 
-    value = input('Notes {}:'.format(record['notes']))
+    value = input('Notes ({}):'.format(record['notes']))
     if value:
         record['notes'] = value
 
