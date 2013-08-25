@@ -35,7 +35,7 @@ svg = '''
 
 def to_date(secs):
     '''Convert seconds to date string'''
-    return time.strftime("%Y/%m/%d", time.gmtime(secs))
+    return time.strftime("%Y/%m/%d", time.localtime(secs))
 
 def to_seconds(date):
     '''Convert date string to seconds'''
