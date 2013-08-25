@@ -712,13 +712,34 @@ def usage():
     print('-h, --help print this message and exit')
     print('-d, --debug turn on debug mode, extra output, no saving')
 
+def index():
+    global vehicles
+
+    html = '''<html>
+    <head>
+    <title>Fuel Economy and Service Records</title>
+    </head>
+    <body>
+    <h1>Fuel Economy and Service Records</h1>
+    {0}
+    </body>
+    </html>
+    '''
+    links = ''
+    link = '''<a href="mpg-{0}.svg">Graph for {0}</a><p/>'''
+    for v in vehicles:
+        links+=link.format(v['reg_no'])
+    f = open('index.html', 'w')
+    f.write(html.format(links))
+    f.close()
+    
 def main():
     '''
     load record data
     load vehicle data
     show main menu
     '''
-    global debug
+    global debug, vehicles
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hd", ["help", "debug"])
     except getopt.GetoptError as err:
@@ -741,6 +762,9 @@ def main():
         print('#### DEBUG MODE ####')
 
     load()
+    for v in vehicles:
+        graph(v)
+    index()
     main_menu() 
 
 #call main

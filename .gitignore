@@ -1,3 +1,4 @@
 *.svg
 *.db
 __pycache__
+index.html
