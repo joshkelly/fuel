@@ -525,8 +525,6 @@ def graph(vehicle=None):
         vehicle = choose_vehicle()
     sum_rec = get_summary(vehicle)
     mpg_avg = sum_rec['mpg']['avg']
-    #mpg_max = sum_rec['mpg']['max']
-    #mpg_min = sum_rec['mpg']['min']
     mpg_min=99999999
     mpg_max = 0
 
@@ -541,23 +539,17 @@ def graph(vehicle=None):
     drange = 0
     for r in fuel:
         if r['vehicle_id'] == vehicle['vehicle_id']:
-            d=datetime.datetime.strptime(r['date'], '%Y/%m/%d')
-            d = (d-datetime.datetime(1970,1,1)).total_seconds()
-            calc_mpg(r, False)
-            r['secs'] = d
-            m = r['mpg']
-            dmax = max(dmax, d)
-            dmin = min(dmin, d)
-            mpg_max = max(mpg_max, m)
-            mpg_min = min(mpg_min, m)
+            dmax = max(dmax, r['date'])
+            dmin = min(dmin, r['date'])
+            mpg_max = max(mpg_max, r['mpg'])
+            mpg_min = min(mpg_min, r['mpg'])
 
             recs.append(r)
             num += 1
 
     drange = dmax - dmin
     mpg_range = mpg_max - mpg_min
-    newlist = sorted(recs, key=itemgetter('secs'))
-    #print(newlist)
+    newlist = sorted(recs, key=itemgetter('date'))
 
     inner_svg = ''
 
@@ -566,7 +558,7 @@ def graph(vehicle=None):
     for i in range(num):
         #print(i, num)
         x = (i * tick_dist) + 50
-        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(x, 550, x, 560)
+        #inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(x, 550, x, 560)
         #inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" stroke="black">{}</text>\n'.format(x, 575, recs[i]['date'])
 
     yscale = mpg_max
@@ -576,7 +568,7 @@ def graph(vehicle=None):
     x=None
     y=None
     for r in newlist:
-        x=r['secs']
+        x=r['date']
         y=r['mpg']
 
         # generate x coordinate
