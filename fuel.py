@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import pdb
-import getopt, sys, datetime, sqlite3, string, time
+import getopt, sys, datetime, sqlite3, string, time, math
 import json
 import mkdb
 from operator import itemgetter
@@ -24,6 +24,8 @@ forms={
     'service':['date', 'cost', 'odo', 'item', 'notes']
 }
 
+scalex=700
+scaley=500
 svg = '''
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="800" height="600">
 	<text x="400" y="25" text-anchor="middle" fill="black" stroke="none" font-weight='normal'>Fuel Economy for {0}</text>
@@ -528,9 +530,6 @@ def graph(vehicle=None):
     mpg_min=99999999
     mpg_max = 0
 
-    scalex = 400
-    scaley = 400
-
     # extract fuel for this vehicle, store in temporary
     recs = []
     num = 0
@@ -548,18 +547,38 @@ def graph(vehicle=None):
             num += 1
 
     drange = dmax - dmin
+
+    # correct y axis
+    mpg_max = math.ceil(mpg_max/10) * 10
+    mpg_min = math.floor(mpg_min/10) * 10
+
     mpg_range = mpg_max - mpg_min
     newlist = sorted(recs, key=itemgetter('date'))
 
     inner_svg = ''
 
-    tick_dist = scalex / num
+    # create ticks along axes
+    tx_dist = scalex / 10 # 10 ticks on the axis
+    ty_dist = scaley / 10 # 10 ticks on the axis
     offset=50
-    for i in range(num):
+    for i in range(num+1):
         #print(i, num)
-        x = (i * tick_dist) + 50
-        #inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(x, 550, x, 560)
-        #inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" stroke="black">{}</text>\n'.format(x, 575, recs[i]['date'])
+        tx = i * tx_dist
+        ty = i * ty_dist
+        x = tx + 50
+        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(x, 550, x, 560)
+        y = ty + 50
+        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(40, y, 50, y)
+
+        tx/=scalex
+        tx*=drange
+        tx+=dmin
+        inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" fill="black" stroke="none">{}</text>\n'.format(x, 575, to_date(tx))
+
+        ty/=scaley
+        ty*=mpg_range
+        ty=mpg_max-ty
+        inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" fill="black" stroke="none">{}</text>\n'.format(40,y,ty)
 
     yscale = mpg_max
     xscale = dmax
@@ -567,24 +586,22 @@ def graph(vehicle=None):
     path = None
     x=None
     y=None
+    points='<g id="points">'
     for r in newlist:
         x=r['date']
         y=r['mpg']
 
         # generate x coordinate
-        x = dmax - x
-        x /= drange
-        x *= scalex
-        x = scalex -x
+        x = (dmax - x) / drange
+        x = scalex - (scalex * x)
         x += 50
 
         # generate y coordinate
-        y = mpg_max - y
-        y /= mpg_range
+        y = (mpg_max - y) / mpg_range
         y *= scaley
         y += 50
 
-        inner_svg += '<circle cx="{:.2f}" cy="{:.2f}" r="3" fill="black"/>'.format(x,y)
+        inner_svg += '<circle cx="{:.2f}" cy="{:.2f}" r="2" fill="black"/>'.format(x,y)
 
         if path == None:
             path = 'M{:.2f},{:.2f}'
@@ -593,9 +610,11 @@ def graph(vehicle=None):
         path=path.format(x,y)
 
         y -= 5
-        inner_svg += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['mpg'])
+        points += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['mpg'])
 
     inner_svg += '<path d="{}" fill="none" stroke="red" stroke-width="0.5"/>'.format(path)
+    points+='</g>'
+    inner_svg+=points
 
     # where does the average line go?
     y = mpg_max - mpg_avg
@@ -603,7 +622,7 @@ def graph(vehicle=None):
     y *= scaley
     y += 50
     inner_svg += '<line x1="50" y1="{0}" x2="750" y2="{0}" stroke="grey"/>\n'.format(y)
-    inner_svg += '<text x="45" y="{}" dominant-baseline="central" text-anchor="end" font-size="10" stroke="none" fill="blue">{:.2f}</text>'.format(y,mpg_avg)
+    inner_svg += '<text x="755" y="{}" dominant-baseline="central" font-size="10" stroke="none" fill="blue">Avg. {:.2f}</text>'.format(y,mpg_avg)
 
 
     #print(inner_svg)
@@ -611,7 +630,7 @@ def graph(vehicle=None):
     f = open(svg_fname, 'w')
     f.write(svg.format(vehicle['reg_no'], inner_svg)+'\n')
     f.close()
-    print('File at ',svg_fname)
+    #print('File at ',svg_fname)
 
 def vehicle_menu():
     '''
@@ -713,6 +732,7 @@ def usage():
     print('-d, --debug turn on debug mode, extra output, no saving')
 
 def index():
+    '''Create index page for graph links'''
     global vehicles
 
     html = '''<html>
