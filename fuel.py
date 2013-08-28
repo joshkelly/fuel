@@ -2,13 +2,14 @@
 
 import pdb
 import getopt, sys, datetime, sqlite3, string, time, math
-import json
 import dbi
+from cli import CLI
 from operator import itemgetter
 
 conn = None
 cur = None
 debug=False
+gui=None
 ltr_gal_conv = 4.54609 # liters in an imperial gallon
 vehicles = []
 fuel = []
@@ -681,6 +682,7 @@ def main_menu():
     '''
     Print main menu
     '''
+    global gui
     print('''\nFuel Economy and Service Records
     1) Add Fuel Record
     2) Edit Fuel Record
@@ -723,6 +725,7 @@ def main_menu():
             edit_service()
         elif option == 0:
             dbi.close()
+            del gui
             exit()
         else:
             processed = False
@@ -764,9 +767,10 @@ def main():
     load vehicle data
     show main menu
     '''
-    global debug, vehicles
+    global debug, vehicles, gui
+    useCli = True
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hd", ["help", "debug"])
+        opts, args = getopt.getopt(sys.argv[1:], "hdc", ["help", "debug", "cli"])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err) # will print something like "option -a not recognized"
@@ -777,6 +781,9 @@ def main():
     for o,a in opts:
         if o in ("-d", "--debug"):
             debug=True
+        elif o in ("-c", "--cli"):
+            print('load CLI')
+            useCli = True
         elif o in ("-h", "--help"):
             usage()
             exit()
@@ -785,6 +792,9 @@ def main():
 
     if debug:
         print('#### DEBUG MODE ####')
+
+    if useCli:
+        gui = CLI()
 
     load()
     for v in vehicles:
