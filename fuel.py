@@ -3,7 +3,7 @@
 import pdb
 import getopt, sys, datetime, sqlite3, string, time, math
 import json
-import mkdb
+import dbi
 from operator import itemgetter
 
 conn = None
@@ -114,7 +114,7 @@ def load():
     '''
     global conn, cur, fuel, vehicles, service
     if conn == None:
-        conn = mkdb.init()
+        conn = dbi.init()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
@@ -722,7 +722,7 @@ def main_menu():
         elif option == 4:
             edit_service()
         elif option == 0:
-            mkdb.close()
+            dbi.close()
             exit()
         else:
             processed = False

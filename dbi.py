@@ -1,3 +1,8 @@
+'''
+DB interface.
+
+Handles table creation, connection and cursor initialisation, loading and saving.
+'''
 import sys, sqlite3
 
 conn = None
