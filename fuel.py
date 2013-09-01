@@ -15,7 +15,7 @@ fuel = []
 summaries = []
 
 vrec = {'vehicle_id' : None, 'reg_no' :'', 'make' :'', 'model' :'', 'year' : 0, 'purchase_price' : 0, 'purchase_date' :'', 'fuel_cap' : 0, 'fuel_type' :'', 'oil_cap' : 0, 'oil_type' :'', 'tyre_cap' : 0, 'tyre_type' :'', 'notes' :''}
-frec = {'fuel_id':None, 'vehicle_id':0, 'date':'', 'litres':0, 'ppl':0, 'trip':0, 'odo':0, 'cost':0, 'mpg':0, 'notes':''}
+frec = {'fuel_id':None, 'vehicle_id':0, 'date':0, 'litres':0, 'ppl':0, 'trip':0, 'odo':0, 'cost':0, 'mpg':0, 'notes':''}
 srec = {'service_id':None, 'vehicle_id':0, 'date':'', 'cost':0, 'odo':0, 'item':'', 'notes':''}
 
 forms={
@@ -54,7 +54,11 @@ def query(tbl, record):
     form = forms[tbl]
     for element in form:
         label = string.capwords(element.replace('_', ' '))
-        e = input('{1} ({0}):'.format(record[element], label))
+        if element != 'date':
+            e = input('{1} ({0}):'.format(record[element], label))
+        else:
+            e = input('{1} ({0}):'.format(to_date(record[element]), label))
+
         if e:
             record[element] = e
 
@@ -269,8 +273,8 @@ def update_fuel(vehicle=None, rec=None):
     if (rec == None):
         # adding new, so get the previous value.
         last = last_fuel(vehicle)
-        rec = record
-        rec['vehicle_id'] = vehicle['vehicle_id']
+        record['vehicle_id'] = vehicle['vehicle_id']
+        record['date'] = time.mktime(time.localtime())
     else:
         record = rec
         isNew = False
@@ -341,6 +345,7 @@ def add_service():
     Add new service record
     '''
     service = srec.copy()
+    service['date'] = time.mktime(time.localtime())
     vehicle = choose_vehicle()
     service['vehicle_id']=vehicle['vehicle_id']
     print('Add Service Record:')
