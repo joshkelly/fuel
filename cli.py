@@ -10,22 +10,42 @@ class CLI:
     def __init__(self):
         print('init cli')
 
-    def predict(self, vehicle):
-        print('Prediction for {0}: {1:.2f} miles'.format(vehicle['reg_no'], FN.predict(vehicle)))
 
-    def show_summary(self, vehicle):
-        summary = FN.get_summary(vehicle)
-        print('\nSummary for {0}:'.format(vehicle['reg_no']))
-        print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(summary['mpg']['min'], summary['mpg']['avg'], summary['mpg']['max']))
-        print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(summary['trip']['min'], summary['trip']['avg'], summary['trip']['max']))
-        print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(summary['ppl']['min'], summary['ppl']['avg'], summary['ppl']['max']))
-        print('Cost Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(summary['cost']['min'], summary['cost']['avg'], summary['cost']['max']))
-        print('Total miles:\t\t {:.1f}'.format(summary['trip']['total']))
-        print('Running cost:\t\t {:.2f}'.format(summary['cost']['total']))
-        print('Total cost:\t\t {:.2f}'.format(summary['cost']['total'] + vehicle['purchase_price']))
-        print('Running cost/mile:\t {:.2f}'.format(summary['cost']['total']/summary['trip']['total']))
-        print('Total cost/mile:\t {:.2f}'.format((summary['cost']['total'] + vehicle['purchase_price'])/summary['trip']['total']))
-       
+    def choose_fuel(self, vehicle):
+        '''
+        Get vehicle record.
+        Choose vehicle, display fuel by date (10 at a time?), on choice, call update_record
+        '''
+        print('\nChoose Fuel Record to edit')
+        # get date-sorted list of fuel for the selected vehicle
+        recs = FN.get_fuel(vehicle)
+
+        while True:
+            num=1
+            print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
+            for r in recs:
+                print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, FN.to_date(r['date']), r['odo'], r['trip'], r['litres'], r['mpg']))
+                num = num +1
+            print('0) Back')
+
+            processed = False
+            option = input('Record? :')
+
+            if option and option.isnumeric():
+                processed = True
+                option = int(option)
+                # go ahead if option in range, else, re-build menu
+                if option == 0:
+                    return [False]
+                elif (option > 0 and option <= len(recs)):
+                    self.update_fuel('Edit', vehicle, recs[option-1])
+                    break
+                else:
+                    processed = False
+
+            if not processed:
+                print ('Invalid option [{0}]'.format(option))
+
     def choose_vehicle(self):
         '''
         Choose vehicle by reg
@@ -58,6 +78,83 @@ class CLI:
             if not processed:
                 print ('Invalid option [{0}]'.format(option))
 
+    def update_fuel(self, title, vehicle=None, rec=None):
+        '''
+        Create or update a fuel record
+        '''
+        print('\n{} Fuel Record for {}:'.format(title, vehicle['reg_no']))
+        record = FN.frec.copy()
+        last = None
+        isNew = True
+
+        # set reg for record
+        record['vehicle_id']=vehicle['vehicle_id']
+           
+        # are we adding a new one or updating an old one?
+        if (rec == None):
+            # adding new, so get the previous value.
+            last = FN.last_fuel(vehicle)
+            #rec = record
+            #rec['vehicle_id'] = vehicle['vehicle_id']
+        else:
+            record = rec
+            isNew = False
+
+        value = input('Date ({}):'.format(FN.to_date(record['date'])))
+        if value:
+            record['date'] = FN.to_seconds(value)
+
+        value = input('Litres ({}):'.format(record['litres']))
+        if value:
+            record['litres'] = float(value)
+
+        value = input('Price per Litre ({}):'.format(record['ppl']))
+        if value:
+            record['ppl'] = float(value)
+
+        value = input('Odometer ({}):'.format(record['odo']))
+        if value:
+            record['odo'] = int(value)
+
+        calc_trip = record['trip'] 
+        if last:
+            calc_trip = record['odo'] - last['odo']
+        trip = input('Trip ({0}):'.format(calc_trip))
+        if trip:
+            record['trip'] = float(trip)
+        else:
+            record['trip'] = calc_trip
+
+        value = input('Notes ({}):'.format(record['notes']))
+        if value:
+            record['notes'] = value
+
+        mpg = FN.update_fuel(vehicle, record)
+
+        print('\nCalculated MPG: {:.2f}'.format(mpg))
+
+    def predict(self, vehicle):
+        '''
+        Display predicted range of vehicle
+        '''
+        print('Prediction for {0}: {1:.2f} miles'.format(vehicle['reg_no'], FN.predict(vehicle)))
+
+    def show_summary(self, vehicle):
+        '''
+        Print summary about chosen vehicle
+        '''
+        summary = FN.get_summary(vehicle)
+        print('\nSummary for {0}:'.format(vehicle['reg_no']))
+        print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(summary['mpg']['min'], summary['mpg']['avg'], summary['mpg']['max']))
+        print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(summary['trip']['min'], summary['trip']['avg'], summary['trip']['max']))
+        print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(summary['ppl']['min'], summary['ppl']['avg'], summary['ppl']['max']))
+        print('Cost Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(summary['cost']['min'], summary['cost']['avg'], summary['cost']['max']))
+        print('Total miles:\t\t {:.1f}'.format(summary['trip']['total']))
+        print('Running cost:\t\t {:.2f}'.format(summary['cost']['total']))
+        print('Total cost:\t\t {:.2f}'.format(summary['cost']['total'] + vehicle['purchase_price']))
+        print('Running cost/mile:\t {:.2f}'.format(summary['cost']['total']/summary['trip']['total']))
+        print('Total cost/mile:\t {:.2f}'.format((summary['cost']['total'] + vehicle['purchase_price'])/summary['trip']['total']))
+       
     def main_menu(self):
         '''
         Print main menu
@@ -84,13 +181,17 @@ class CLI:
                 option = int(option)
 
                 if option == 1:
-                    add_fuel()
+                    r = self.choose_vehicle()
+                    if r[0]:
+                        self.add_fuel('Add', r[1])
                 elif option == 5:
                     r = self.choose_vehicle()
                     if r[0]:
                         self.show_summary(r[1])
                 elif option == 2:
-                    choose_fuel()
+                    r = self.choose_vehicle()
+                    if r[0]:
+                        self.choose_fuel(r[1])
                 elif option == 6:
                     r = self.choose_vehicle()
                     if r[0]:

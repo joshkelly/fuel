@@ -128,8 +128,9 @@ def save(tbl, rec):
     '''
     Save data to DB.
     Check `tbl` to handle `rec` properly 
+    Reload all data from db.
     '''
-    global cur
+    global conn, cur
     if tbl == 'fuel':
         # fuel_id integer, primary key
         # vehicle_id integer, use reg as look up into vdata
@@ -142,6 +143,7 @@ def save(tbl, rec):
         # mpg real, map to 'mpg'
         # notes text, map to 'notes'
         cur.execute("insert or replace into fuel values (?,?,?,?,?,?,?,?,?,?)", [rec['fuel_id'], rec['vehicle_id'], rec['date'], rec['litres'], rec['ppl'], rec['trip'], rec['odo'], rec['cost'], rec['mpg'], rec['notes']])
+        conn.commit()
     elif tbl == 'vehicles':
         # vehicle_id integer, no data, unique key
         # reg_no text, map to 'reg'
@@ -158,6 +160,7 @@ def save(tbl, rec):
         # tyre_type text,no data, ''
         # notes text, no data, ''
         cur.execute('insert or replace into vehicles values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [rec['vehicle_id'], rec['reg_no'], rec['make'], rec['model'], rec['year'], rec['purchase_price'], rec['purchase_date'], rec['fuel_cap'], rec['fuel_type'], rec['oil_cap'], rec['oil_type'], rec['tyre_cap'], rec['tyre_type'], rec['notes']])
+        conn.commit()
     elif tbl == 'service':
         # service_id integer, primary key and index
         # vehicle_id integer, fkey into vehicles
@@ -167,6 +170,7 @@ def save(tbl, rec):
         # item text, description of item
         # notes text, free text
         cur.execute('insert or replace into service values (?,?,?,?,?,?,?)', [rec['service_id'], rec['vehicle_id'], rec['date'], rec['cost'], rec['odo'], rec['item'], rec['notes']])
+        conn.commit()
     else:
         print('Unrecognised table:', tbl)
 
@@ -205,113 +209,66 @@ def save(tbl, rec):
 #    if not processed:
 #        print ('Invalid option [{0}]'.format(option))
 #        choose_vehicle()
+#
+#def add_fuel():
+#    '''
+#    Add new record.
+#    '''
+#    vehicle = choose_vehicle()
+#    print('\nAdd Record for {}:'.format(vehicle['reg_no']))
+#    update_fuel(vehicle)
 
-def add_fuel():
-    '''
-    Add new record.
-    '''
-    vehicle = choose_vehicle()
-    print('\nAdd Record for {}:'.format(vehicle['reg_no']))
-    update_fuel(vehicle)
+#def choose_fuel():
+#    '''
+#    Get vehicle record.
+#    Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
+#    '''
+#    vehicle = choose_vehicle()
+#    print('\nEdit Record for {}:'.format(vehicle['reg_no']))
+#    # get date-sorted list of fuel for the selected vehicle
+#    recs = get_fuel(vehicle)
+#
+#    num=1
+#    print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
+#    for r in recs:
+#        print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, to_date(r['date']), r['odo'], r['trip'], r['litres'], r['mpg']))
+#        num = num +1
+#    print('0) Back')
+#
+#    option = input('Record? :')
+#
+#    try:
+#        option = int(option)
+#        # go ahead if option in range, else, re-build menu
+#        if option == 0:
+#            main_menu()
+#        elif (option > 0 and option <= len(recs)):
+#            update_fuel(vehicle, recs[option-1])
+#        else:
+#            choose_fuel()
+#    except Exception as err:
+#        print('Bad Value passed to menu')
+#        print(err)
+#        choose_fuel()
 
-def choose_fuel():
-    '''
-    Get vehicle record.
-    Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
-    '''
-    vehicle = choose_vehicle()
-    print('\nEdit Record for {}:'.format(vehicle['reg_no']))
-    # get date-sorted list of fuel for the selected vehicle
-    recs = get_fuel(vehicle)
-
-    num=1
-    print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
-    for r in recs:
-        print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, to_date(r['date']), r['odo'], r['trip'], r['litres'], r['mpg']))
-        num = num +1
-    print('0) Back')
-
-    option = input('Record? :')
-
-    try:
-        option = int(option)
-        # go ahead if option in range, else, re-build menu
-        if option == 0:
-            main_menu()
-        elif (option > 0 and option <= len(recs)):
-            update_fuel(vehicle, recs[option-1])
-        else:
-            choose_fuel()
-    except Exception as err:
-        print('Bad Value passed to menu')
-        print(err)
-        choose_fuel()
-
-def update_fuel(vehicle=None, rec=None):
+def update_fuel(vehicle, record):
     '''
     Create or update a fuel record
+
+    @return calculated mpg
     '''
-    record = frec.copy()
-    last = None
-    isNew = True
-
-    # did they pass us a vehicle?
-    if (vehicle == None):
-        vehicle = choose_vehicle()
-
-    # set reg for record
-    record['vehicle_id']=vehicle['vehicle_id']
-       
-    # are we adding a new one or updating an old one?
-    if (rec == None):
-        # adding new, so get the previous value.
-        last = last_fuel(vehicle)
-        rec = record
-        rec['vehicle_id'] = vehicle['vehicle_id']
-    else:
-        record = rec
-        isNew = False
-
-    value = input('Date ({}):'.format(to_date(record['date'])))
-    if value:
-        record['date'] = to_seconds(value)
-
-    value = input('Litres ({}):'.format(record['litres']))
-    if value:
-        record['litres'] = float(value)
-
-    value = input('Price per Litre ({}):'.format(record['ppl']))
-    if value:
-        record['ppl'] = float(value)
-
-    value = input('Odometer ({}):'.format(record['odo']))
-    if value:
-        record['odo'] = int(value)
-
-    calc_trip = record['trip'] 
-    if last:
-        calc_trip = record['odo'] - last['odo']
-    trip = input('Trip ({0}):'.format(calc_trip))
-    if trip:
-        record['trip'] = float(trip)
-    else:
-        record['trip'] = calc_trip
-
-    value = input('Notes ({}):'.format(record['notes']))
-    if value:
-        record['notes'] = value
-
-    calc_mpg(record, False)
-    print('\n Calculated MPG: {0}'.format(record['mpg']))
+    # caclulate the mpg
+    calc_mpg(record)
 
     # update database
     save('fuel', record)
 
     # generate graph
     graph(vehicle)
-    main_menu()
 
-def calc_mpg(record, doSave):
+    return record['mpg']
+
+def calc_mpg(record):
     '''
     Calculate MPG for record.
     '''
@@ -663,47 +620,47 @@ def index():
     f.write(html.format(links))
     f.close()
     
-def main():
-    '''
-    load record data
-    load vehicle data
-    show main menu
-    '''
-    global debug, vehicles, gui
-    useCli = True
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdc", ["help", "debug", "cli"])
-    except getopt.GetoptError as err:
-        # print help information and exit:
-        print(err) # will print something like "option -a not recognized"
-        usage()
-        sys.exit(2)
-
-
-    for o,a in opts:
-        if o in ("-d", "--debug"):
-            debug=True
-        elif o in ("-c", "--cli"):
-            print('load CLI')
-            useCli = True
-        elif o in ("-h", "--help"):
-            usage()
-            exit()
-        else:
-            assert False, "unhandled option"
-
-    if debug:
-        print('#### DEBUG MODE ####')
-
-    if useCli:
-        gui = CLI()
-
-    load()
-    for v in vehicles:
-        graph(v)
-    index()
-    main_menu() 
-
+#def main():
+#    '''
+#    load record data
+#    load vehicle data
+#    show main menu
+#    '''
+#    global debug, vehicles, gui
+#    useCli = True
+#    try:
+#        opts, args = getopt.getopt(sys.argv[1:], "hdc", ["help", "debug", "cli"])
+#    except getopt.GetoptError as err:
+#        # print help information and exit:
+#        print(err) # will print something like "option -a not recognized"
+#        usage()
+#        sys.exit(2)
+#
+#
+#    for o,a in opts:
+#        if o in ("-d", "--debug"):
+#            debug=True
+#        elif o in ("-c", "--cli"):
+#            print('load CLI')
+#            useCli = True
+#        elif o in ("-h", "--help"):
+#            usage()
+#            exit()
+#        else:
+#            assert False, "unhandled option"
+#
+#    if debug:
+#        print('#### DEBUG MODE ####')
+#
+#    if useCli:
+#        gui = CLI()
+#
+#    load()
+#    for v in vehicles:
+#        graph(v)
+#    index()
+#    main_menu() 
+#
 #call main
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
