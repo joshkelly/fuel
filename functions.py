@@ -172,39 +172,39 @@ def save(tbl, rec):
 
     load()
 
-def choose_vehicle():
-    '''
-    Choose vehicle by reg
-    '''
-    global vehicles
-    num = 1
-    for v in vehicles:
-        print('{0}) {1}'.format(num, v['reg_no']))
-        num +=1
-    print('0) Back')
-
-    processed = False
-    option = None
-    option = input('Vehicle? :')
-
-    if not option:
-        choose_vehicle()
-
-    # check option is numeric
-    if option.isnumeric():
-        processed = True
-        option = int(option)
-        # go ahead if option in range, else, re-build main_menu
-        if option == 0:
-            main_menu()
-        elif (option > 0 and option <= len(vehicles)):
-            return vehicles[option-1]
-        else:
-            processed = False
-
-    if not processed:
-        print ('Invalid option [{0}]'.format(option))
-        choose_vehicle()
+#def choose_vehicle():
+#    '''
+#    Choose vehicle by reg
+#    '''
+#    global vehicles
+#    num = 1
+#    for v in vehicles:
+#        print('{0}) {1}'.format(num, v['reg_no']))
+#        num +=1
+#    print('0) Back')
+#
+#    processed = False
+#    option = None
+#    option = input('Vehicle? :')
+#
+#    if not option:
+#        choose_vehicle()
+#
+#    # check option is numeric
+#    if option.isnumeric():
+#        processed = True
+#        option = int(option)
+#        # go ahead if option in range, else, re-build main_menu
+#        if option == 0:
+#            main_menu()
+#        elif (option > 0 and option <= len(vehicles)):
+#            return vehicles[option-1]
+#        else:
+#            processed = False
+#
+#    if not processed:
+#        print ('Invalid option [{0}]'.format(option))
+#        choose_vehicle()
 
 def add_fuel():
     '''
@@ -402,34 +402,28 @@ def choose_service(vehicle=None):
         print('Invalid option [{0}]'.format(option))
         choose_service(vehicle)
 
+#def get_summary(vehicle):
+#    '''
+#    Get summary record.
+#    If one exists in collection return that, else, generate a new one
+#    '''
+#    sum_rec = None
+#    for s in summaries:
+#        if s['reg_no'] == vehicle['reg_no']:
+#            sum_rec = s
+#            break
+#
+#    if sum_rec == None:
+#        sum_rec = summary(vehicle)
+#
+#    return sum_rec
+
 def get_summary(vehicle):
-    '''
-    Get summary record.
-    If one exists in collection return that, else, generate a new one
-    '''
-    sum_rec = None
-    for s in summaries:
-        if s['reg_no'] == vehicle['reg_no']:
-            sum_rec = s
-            break
-
-    if sum_rec == None:
-        sum_rec = summary(vehicle)
-
-    return sum_rec
-
-def summary(v=None):
     '''
     Create/update summary fuel for a vehicle
     if no vehicle passed, prompt user to choose, calculate, save and display results
     if vehicle passed, calculate, save and return results
     '''
-    vehicle=None
-    if v == None:
-        vehicle = choose_vehicle()
-    else:
-        vehicle = v
-
     sum_rec = {
         'mpg':{'avg':0.0, 'min':float('inf'), 'max':0.0},
         'trip':{'avg':0.0, 'min':float('inf'), 'max':0.0, 'total':0.0},
@@ -453,38 +447,16 @@ def summary(v=None):
     sql = "select sum(cost) from service where vehicle_id='{0}'"
     cur.execute(sql.format(vehicle['vehicle_id']))
     sum_rec['cost']
+    return sum_rec
 
-
-    if v == None:
-        print('\nSummary for {0}:'.format(vehicle['reg_no']))
-        print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(sum_rec['mpg']['min'], sum_rec['mpg']['avg'], sum_rec['mpg']['max']))
-        print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(sum_rec['trip']['min'], sum_rec['trip']['avg'], sum_rec['trip']['max']))
-        print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(sum_rec['ppl']['min'], sum_rec['ppl']['avg'], sum_rec['ppl']['max']))
-        print('Cost Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(sum_rec['cost']['min'], sum_rec['cost']['avg'], sum_rec['cost']['max']))
-        print('Total miles:\t\t {:.1f}'.format(sum_rec['trip']['total']))
-        print('Running cost:\t\t {:.2f}'.format(sum_rec['cost']['total']))
-        print('Total cost:\t\t {:.2f}'.format(sum_rec['cost']['total'] + vehicle['purchase_price']))
-        print('Running cost/mile:\t {:.2f}'.format(sum_rec['cost']['total']/sum_rec['trip']['total']))
-        print('Total cost/mile:\t {:.2f}'.format((sum_rec['cost']['total'] + vehicle['purchase_price'])/sum_rec['trip']['total']))
-   
-        main_menu()
-    else:
-        return sum_rec
-
-def predict(vehicle=None):
+def predict(vehicle):
     '''
     Based on chosen vehicle's average MPG, calculate max distance travelable
     '''
-    if vehicle == None:
-        vehicle = choose_vehicle()
-
-    print('Prediction for {0}'.format(vehicle['reg_no']))
     sum_rec = get_summary(vehicle)
 
     ftcg = vehicle['fuel_cap'] / ltr_gal_conv
-    prediction = sum_rec['mpg']['avg'] * ftcg
-    print('{:.2f} miles'.format(prediction))
-    main_menu()
+    return sum_rec['mpg']['avg'] * ftcg
 
 def get_fuel(vehicle):
     '''
@@ -514,14 +486,12 @@ def get_fuel(vehicle):
     recs = sorted(recs, key=itemgetter('date'))
     return recs
 
-def graph(vehicle=None):
+def graph(vehicle):
     '''
     For a vehicle, create an SVG graph showing the MPG over time.
     Include average MPG.
     '''
     global fuel
-    if vehicle == None:
-        vehicle = choose_vehicle()
     sum_rec = get_summary(vehicle)
     mpg_avg = sum_rec['mpg']['avg']
     mpg_min=99999999
@@ -621,13 +591,12 @@ def graph(vehicle=None):
     inner_svg += '<line x1="50" y1="{0}" x2="750" y2="{0}" stroke="grey"/>\n'.format(y)
     inner_svg += '<text x="755" y="{}" dominant-baseline="central" font-size="10" stroke="none" fill="blue">Avg. {:.2f}</text>'.format(y,mpg_avg)
 
-
     #print(inner_svg)
     svg_fname = 'mpg-{}.svg'.format(vehicle['reg_no'])
     f = open(svg_fname, 'w')
     f.write(svg.format(vehicle['reg_no'], inner_svg)+'\n')
     f.close()
-    #print('File at ',svg_fname)
+    print('File at ',svg_fname)
 
 def vehicle_menu():
     '''
@@ -671,8 +640,6 @@ def vehicle_menu():
 
 def exit():
     dbi.close()
-    exit()
-
 
 def index():
     '''Create index page for graph links'''
