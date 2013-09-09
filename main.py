@@ -3,7 +3,7 @@
 import pdb
 import getopt, sys, datetime, sqlite3, string, time, math
 import dbi
-import functions
+import functions as FN
 from cli import CLI
 from operator import itemgetter
 
@@ -49,10 +49,10 @@ def main():
     if useCli:
         gui = CLI()
 
-    functions.load()
-    for v in functions.vehicles:
-        functions.graph(v)
-    functions.index()
+    FN.load()
+    for v in FN.vehicles:
+        FN.fuel_graph(v)
+    FN.index()
     gui.main_menu() 
 
 #call main

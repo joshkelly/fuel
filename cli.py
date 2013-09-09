@@ -3,6 +3,7 @@ Command line interface to `fuel`
 
 Handles menus, user input and formats output.
 '''
+import string
 import functions as FN
 
 class CLI:
@@ -11,9 +12,78 @@ class CLI:
         print('init cli')
 
 
+    def query(self, tbl, record):
+        '''
+        Handler for data query.
+
+        Uses form to order output
+        '''
+        form = FN.forms[tbl]
+        for element in form:
+            label = string.capwords(element.replace('_', ' '))
+            if element == 'date':
+                e = input('{1} ({0}):'.format(FN.to_date(record[element]), label))
+            else:
+                e = input('{1} ({0}):'.format(record[element], label))
+
+            if e:
+                if element == 'date':
+                    record[element] = FN.to_date(e)
+                else:
+                    record[element] = e
+
+    def update_service(self, title, vehicle, service=None):
+        '''
+        Create/update a service record
+        '''
+        if not service:
+            service = FN.srec.copy()
+            service['vehicle_id']=vehicle['vehicle_id']
+
+        self.query('service', service)
+        FN.update_service(service)
+
+    def choose_service(self, vehicle):
+        '''
+        Get vehicle record.
+
+        Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
+        '''
+        recs = FN.get_service(vehicle)
+
+        print('\nChoose Service Record to edit')
+        while True:
+            num=1
+            print('X) yyyy/mm/dd Item Cost')
+            for r in recs:
+                print('{0}) {1} {2} {3}'.format(num, FN.to_date(r['date']), r['item'], r['cost']))
+                num = num +1
+            print('0) Back')
+
+            processed = False
+            option = input('Service Record? :')
+
+            # check option is numeric
+            if option and option.isnumeric():
+                processed = True
+
+                option = int(option)
+                # go ahead if option in range, else, re-build menu
+                if option == 0:
+                    return [False]
+                elif (option > 0 and option <= len(recs)):
+                    self.update_service("Edit", vehicle, recs[option-1])
+                    break
+                else:
+                    processed = False
+
+            if not processed:
+                print('Invalid option [{0}]'.format(option))
+
     def choose_fuel(self, vehicle):
         '''
         Get vehicle record.
+
         Choose vehicle, display fuel by date (10 at a time?), on choice, call update_record
         '''
         print('\nChoose Fuel Record to edit')
@@ -29,7 +99,7 @@ class CLI:
             print('0) Back')
 
             processed = False
-            option = input('Record? :')
+            option = input('Fuel Record? :')
 
             if option and option.isnumeric():
                 processed = True
@@ -183,15 +253,23 @@ class CLI:
                 if option == 1:
                     r = self.choose_vehicle()
                     if r[0]:
-                        self.add_fuel('Add', r[1])
-                elif option == 5:
-                    r = self.choose_vehicle()
-                    if r[0]:
-                        self.show_summary(r[1])
+                        self.update_fuel('Add', r[1])
                 elif option == 2:
                     r = self.choose_vehicle()
                     if r[0]:
                         self.choose_fuel(r[1])
+                elif option == 3:
+                    r = self.choose_vehicle()
+                    if r[0]:
+                        self.update_service('Add', r[1])
+                elif option == 4:
+                    r = self.choose_vehicle()
+                    if r[0]:
+                        self.choose_service(r[1])
+                elif option == 5:
+                    r = self.choose_vehicle()
+                    if r[0]:
+                        self.show_summary(r[1])
                 elif option == 6:
                     r = self.choose_vehicle()
                     if r[0]:
@@ -202,10 +280,6 @@ class CLI:
                         FN.graph(r[1])
                 elif option == 8:
                     vehicle_menu()
-                elif option == 3:
-                    add_service()
-                elif option == 4:
-                    edit_service()
                 elif option == 0:
                     FN.exit()
                     self.running=False

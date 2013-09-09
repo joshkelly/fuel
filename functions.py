@@ -176,81 +176,6 @@ def save(tbl, rec):
 
     load()
 
-#def choose_vehicle():
-#    '''
-#    Choose vehicle by reg
-#    '''
-#    global vehicles
-#    num = 1
-#    for v in vehicles:
-#        print('{0}) {1}'.format(num, v['reg_no']))
-#        num +=1
-#    print('0) Back')
-#
-#    processed = False
-#    option = None
-#    option = input('Vehicle? :')
-#
-#    if not option:
-#        choose_vehicle()
-#
-#    # check option is numeric
-#    if option.isnumeric():
-#        processed = True
-#        option = int(option)
-#        # go ahead if option in range, else, re-build main_menu
-#        if option == 0:
-#            main_menu()
-#        elif (option > 0 and option <= len(vehicles)):
-#            return vehicles[option-1]
-#        else:
-#            processed = False
-#
-#    if not processed:
-#        print ('Invalid option [{0}]'.format(option))
-#        choose_vehicle()
-#
-#def add_fuel():
-#    '''
-#    Add new record.
-#    '''
-#    vehicle = choose_vehicle()
-#    print('\nAdd Record for {}:'.format(vehicle['reg_no']))
-#    update_fuel(vehicle)
-
-#def choose_fuel():
-#    '''
-#    Get vehicle record.
-#    Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
-#    '''
-#    vehicle = choose_vehicle()
-#    print('\nEdit Record for {}:'.format(vehicle['reg_no']))
-#    # get date-sorted list of fuel for the selected vehicle
-#    recs = get_fuel(vehicle)
-#
-#    num=1
-#    print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
-#    for r in recs:
-#        print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, to_date(r['date']), r['odo'], r['trip'], r['litres'], r['mpg']))
-#        num = num +1
-#    print('0) Back')
-#
-#    option = input('Record? :')
-#
-#    try:
-#        option = int(option)
-#        # go ahead if option in range, else, re-build menu
-#        if option == 0:
-#            main_menu()
-#        elif (option > 0 and option <= len(recs)):
-#            update_fuel(vehicle, recs[option-1])
-#        else:
-#            choose_fuel()
-#    except Exception as err:
-#        print('Bad Value passed to menu')
-#        print(err)
-#        choose_fuel()
-
 def update_fuel(vehicle, record):
     '''
     Create or update a fuel record
@@ -264,9 +189,15 @@ def update_fuel(vehicle, record):
     save('fuel', record)
 
     # generate graph
-    graph(vehicle)
+    fuel_graph(vehicle)
 
     return record['mpg']
+
+def update_service(service):
+    '''
+    Modify a service record
+    '''
+    save('service', service)
 
 def calc_mpg(record):
     '''
@@ -289,91 +220,6 @@ def last_fuel(vehicle):
                     curr = record
 
     return curr
-
-def add_service():
-    '''
-    Add new service record
-    '''
-    service = srec.copy()
-    vehicle = choose_vehicle()
-    service['vehicle_id']=vehicle['vehicle_id']
-    print('Add Service Record:')
-    query('service', service)
-    save('service', service)
-    main_menu()
-
-def edit_service():
-    '''
-    Modify a service record
-    '''
-    vehicle = choose_vehicle()
-    service = choose_service(vehicle)
-    
-    if service:
-        print('now here')
-        query('service', service)
-        save('service', service)
-
-    main_menu()
-
-def choose_service(vehicle=None):
-    '''
-    Get vehicle record.
-    Choose vehicle, display fuel by date (10 at a time?), on choice, get new values, save
-    '''
-    if not vehicle:
-        vehicle = choose_vehicle()
-    print('\nEdit Service Record for {}:'.format(vehicle['reg_no']))
-    # get date-sorted list of fuel for the selected vehicle
-    cur.execute('select * from service where vehicle_id="{0}" order by date asc'.format(vehicle['vehicle_id']))
-    recs = [dict(row) for row in cur]
-
-    num=1
-    print('X) yyyy/mm/dd Item Cost')
-    for r in recs:
-        print('{0}) {1} {2} {3}'.format(num, r['date'], r['item'], r['cost']))
-        num = num +1
-    print('0) Back')
-
-    processed = False
-    option = None
-    option = input('Service? :')
-
-    if not option:
-        choose_service(vehicle)
-
-    # check option is numeric
-    if option.isnumeric():
-        processed = True
-
-        option = int(option)
-        # go ahead if option in range, else, re-build menu
-        if option == 0:
-            main_menu()
-        elif (option > 0 and option <= len(recs)):
-            return recs[option-1]
-        else:
-            processed = False
-
-    if not processed:
-        print('Invalid option [{0}]'.format(option))
-        choose_service(vehicle)
-
-#def get_summary(vehicle):
-#    '''
-#    Get summary record.
-#    If one exists in collection return that, else, generate a new one
-#    '''
-#    sum_rec = None
-#    for s in summaries:
-#        if s['reg_no'] == vehicle['reg_no']:
-#            sum_rec = s
-#            break
-#
-#    if sum_rec == None:
-#        sum_rec = summary(vehicle)
-#
-#    return sum_rec
 
 def get_summary(vehicle):
     '''
@@ -415,6 +261,11 @@ def predict(vehicle):
     ftcg = vehicle['fuel_cap'] / ltr_gal_conv
     return sum_rec['mpg']['avg'] * ftcg
 
+def get_service(vehicle):
+    '''get date-sorted list of fuel for the selected vehicle'''
+    cur.execute('select * from service where vehicle_id="{0}" order by date asc'.format(vehicle['vehicle_id']))
+    return [dict(row) for row in cur]
+
 def get_fuel(vehicle):
     '''
     Get all fuel record this vehicle
@@ -443,7 +294,7 @@ def get_fuel(vehicle):
     recs = sorted(recs, key=itemgetter('date'))
     return recs
 
-def graph(vehicle):
+def fuel_graph(vehicle):
     '''
     For a vehicle, create an SVG graph showing the MPG over time.
     Include average MPG.
@@ -596,6 +447,11 @@ def vehicle_menu():
         vehicle_menu()
 
 def exit():
+    '''
+    Stuff to do at shutdown
+    
+    Close DBI
+    '''
     dbi.close()
 
 def index():
@@ -619,48 +475,3 @@ def index():
     f = open('index.html', 'w')
     f.write(html.format(links))
     f.close()
-    
-#def main():
-#    '''
-#    load record data
-#    load vehicle data
-#    show main menu
-#    '''
-#    global debug, vehicles, gui
-#    useCli = True
-#    try:
-#        opts, args = getopt.getopt(sys.argv[1:], "hdc", ["help", "debug", "cli"])
-#    except getopt.GetoptError as err:
-#        # print help information and exit:
-#        print(err) # will print something like "option -a not recognized"
-#        usage()
-#        sys.exit(2)
-#
-#
-#    for o,a in opts:
-#        if o in ("-d", "--debug"):
-#            debug=True
-#        elif o in ("-c", "--cli"):
-#            print('load CLI')
-#            useCli = True
-#        elif o in ("-h", "--help"):
-#            usage()
-#            exit()
-#        else:
-#            assert False, "unhandled option"
-#
-#    if debug:
-#        print('#### DEBUG MODE ####')
-#
-#    if useCli:
-#        gui = CLI()
-#
-#    load()
-#    for v in vehicles:
-#        graph(v)
-#    index()
-#    main_menu() 
-#
-#call main
-#if __name__ == "__main__":
-#    main()
