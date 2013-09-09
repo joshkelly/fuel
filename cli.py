@@ -304,8 +304,8 @@ class CLI:
             4) Edit Service Record
             5) Show Summary
             6) Predict Range
-            7) Economy Graph
-            8) Vehicle Management
+            7) Vehicle Management
+            8) Help
             0) Quit
             ''')
             processed = False
@@ -342,11 +342,9 @@ class CLI:
                     if r[0]:
                         self.predict(r[1])
                 elif option == 7:
-                    r = self.choose_vehicle()
-                    if r[0]:
-                        FN.graph(r[1])
-                elif option == 8:
                     self.vehicle_menu()
+                elif option == 8:
+                    self.help()
                 elif option == 0:
                     FN.exit()
                     self.running=False
@@ -355,3 +353,7 @@ class CLI:
 
             if not processed:
                 print('Invalid option [{0}]'.format(option))
+
+    def help(self):
+        '''Print help'''
+        print('Insert Help Here')
