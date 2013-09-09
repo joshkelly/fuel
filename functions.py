@@ -279,6 +279,8 @@ def fuel_graph(vehicle):
             recs.append(r)
             num += 1
 
+    if len(recs) == 0:
+        return
     drange = dmax - dmin
 
     # correct y axis
