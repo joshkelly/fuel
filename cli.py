@@ -36,6 +36,7 @@ class CLI:
         '''
         Create/update a service record
         '''
+        print('\n{} Service Record for {}'.format(title, vehicle['reg_no']))
         if not service:
             service = FN.srec.copy()
             service['vehicle_id']=vehicle['vehicle_id']
@@ -153,22 +154,19 @@ class CLI:
         Create or update a fuel record
         '''
         print('\n{} Fuel Record for {}:'.format(title, vehicle['reg_no']))
-        record = FN.frec.copy()
         last = None
-        isNew = True
 
         # set reg for record
         record['vehicle_id']=vehicle['vehicle_id']
            
         # are we adding a new one or updating an old one?
-        if (rec == None):
+        if (record == None):
             # adding new, so get the previous value.
             last = FN.last_fuel(vehicle)
-            #rec = record
-            #rec['vehicle_id'] = vehicle['vehicle_id']
+            record = FN.frec.copy()
+            record['vehicle_id'] = vehicle['vehicle_id']
         else:
             record = rec
-            isNew = False
 
         value = input('Date ({}):'.format(FN.to_date(record['date'])))
         if value:
@@ -225,6 +223,75 @@ class CLI:
         print('Running cost/mile:\t {:.2f}'.format(summary['cost']['total']/summary['trip']['total']))
         print('Total cost/mile:\t {:.2f}'.format((summary['cost']['total'] + vehicle['purchase_price'])/summary['trip']['total']))
        
+    def update_vehicle(self, title, vehicle=None):
+        '''
+        Modify a vehicle record
+        '''
+        print('{} Vehicle:'.format(title))
+        if not vehicle:
+            vehicle = FN.vrec.copy()
+
+        self.query('vehicle', vehicle)
+
+        FN.update_vehicle(vehicle)
+
+    def list_vehicles(self):
+        '''
+        List known vehicles
+        '''
+        print('List Vehicles:')
+        for v in FN.vehicles:
+            print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg_no'], v['fuel_cap']))
+
+    def remove_vehicle(self, vehicle):
+        '''
+        Remove vehicle from data
+        '''
+        print('Remove Vehicle:')
+        confirm = input('Remove {0}? [y/N]:'.format(vehicle['reg_no'])).lower()
+        if confirm == 'y':
+            FN.remove_vehicle(vehicle)
+
+    def vehicle_menu(self):
+        '''
+        Manage vehicles sub-main_menu
+        '''
+        while True:
+            print('''Vehicles:
+            1) Add
+            2) Edit
+            3) List
+            4) Remove
+            0) Back to Main Menu
+            ''')
+            processed = False
+            option = input('Option? :')
+
+            # check option is numeric
+            if option and option.isnumeric():
+                processed = True
+                option = int(option)
+
+                if option == 0:
+                    break
+                elif option == 1:
+                    self.update_vehicle('Add')
+                elif option == 2:
+                    r = self.choose_vehicle()
+                    if r[0]:
+                        self.update_vehicle(r[1])
+                elif option == 3:
+                    self.list_vehicles()
+                elif option == 4:
+                    r = self.choose_vehicle()
+                    if r[0]:
+                        self.remove_vehicle(r[1])
+                else:
+                    processed = False
+
+            if not processed:
+                print('Invalid option [{0}]'.format(option))
+
     def main_menu(self):
         '''
         Print main menu
@@ -279,7 +346,7 @@ class CLI:
                     if r[0]:
                         FN.graph(r[1])
                 elif option == 8:
-                    vehicle_menu()
+                    self.vehicle_menu()
                 elif option == 0:
                     FN.exit()
                     self.running=False

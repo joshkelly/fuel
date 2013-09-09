@@ -11,12 +11,12 @@ vehicles = []
 fuel = []
 summaries = []
 
-vrec = {'vehicle_id' : None, 'reg_no' :'', 'make' :'', 'model' :'', 'year' : 0, 'purchase_price' : 0, 'purchase_date' :'', 'fuel_cap' : 0, 'fuel_type' :'', 'oil_cap' : 0, 'oil_type' :'', 'tyre_cap' : 0, 'tyre_type' :'', 'notes' :''}
+vrec = {'vehicle_id' : None, 'reg_no' :'', 'make' :'', 'model' :'', 'year' : 0, 'purchase_price' : 0, 'purchase_date' :'', 'fuel_cap' : 0, 'fuel_type' :'', 'oil_cap' : 0, 'oil_type' :'', 'tyre_front_cap' : 0, 'tyre_front_type' :'', 'tyre_rear_cap':'', 'tyre_rear_type':'', 'notes' :''}
 frec = {'fuel_id':None, 'vehicle_id':0, 'date':'', 'litres':0, 'ppl':0, 'trip':0, 'odo':0, 'cost':0, 'mpg':0, 'notes':''}
 srec = {'service_id':None, 'vehicle_id':0, 'date':'', 'cost':0, 'odo':0, 'item':'', 'notes':''}
 
 forms={
-    'vehicle':['reg_no', 'make', 'model', 'year', 'purchase_price', 'purchase_date', 'fuel_cap', 'fuel_type', 'oil_cap', 'oil_type', 'tyre_cap', 'tyre_type', 'notes'],
+    'vehicle':['reg_no', 'make', 'model', 'year', 'purchase_price', 'purchase_date', 'fuel_cap', 'fuel_type', 'oil_cap', 'oil_type', 'tyre_front_cap', 'tyre_rear_type', 'tyre_rear_cap', 'tyre_rear_type','notes'],
     'fuel':['vehicle_id', 'date', 'litres', 'ppl', 'trip', 'odo', 'cost', 'notes'],
     'service':['date', 'cost', 'odo', 'item', 'notes']
 }
@@ -40,65 +40,21 @@ def to_seconds(date):
     '''Convert date string to seconds'''
     return time.mktime(time.strptime(date, "%Y/%m/%d"))
 
-def query(tbl, record):
-    '''
-    Handler for data query.
 
-    Uses form to order output
-    '''
-    global forms
-
-    form = forms[tbl]
-    for element in form:
-        label = string.capwords(element.replace('_', ' '))
-        e = input('{1} ({0}):'.format(record[element], label))
-        if e:
-            record[element] = e
-
-def add_vehicle():
-    '''
-    Add new vehicle record
-    '''
-    global vehicles
-    vehicle = vrec.copy()
-    print('Add Vehicle:')
-    query('vehicle', vehicle)
-    save('vehicles', vehicle)
-    vehicle_menu()
-
-def edit_vehicle():
+def update_vehicle(vehicle):
     '''
     Modify a vehicle record
     '''
-    print('Modify Vehicle:')
-    vehicle = choose_vehicle()
-    query('vehicle', vehicle)
-
     save('vehicles', vehicle)
 
-    vehicle_menu()
 
-def list_vehicles():
-    '''
-    List known vehicles
-    '''
-    print('List Vehicles:')
-    for v in vehicles:
-        print('{0} {1} {2} {3} {4} litres'.format(v['year'], v['make'], v['model'], v['reg_no'], v['fuel_cap']))
-    vehicle_menu()
-
-def remove_vehicle():
+def remove_vehicle(vehicle):
     '''
     Remove vehicle from data
     '''
-    global vehicles, cur
-    print('Remove Vehicle:')
-    vehicle = choose_vehicle()
-    confirm = input('Remove {0}? [y/N]:'.format(vehicle['reg_no'])).lower()
-    if confirm == 'y':
-        cur.execute('delete from vehicles where reg_no="{0}"'.format(vehicle['reg_no']))
-        load()
-    vehicle_menu()
+    cur.execute('delete from vehicles where reg_no="{0}"'.format(vehicle['reg_no']))
+    conn.commit()
+    load()
 
 def load():
     '''
@@ -156,10 +112,12 @@ def save(tbl, rec):
         # fuel_type text, no data, ''
         # oil_cap real,no data, 0
         # oil_type text, no data, ''
-        # tyre_cap real,no data, 0
-        # tyre_type text,no data, ''
+        # tyre_front_cap real,no data, 0
+        # tyre_front_type text,no data, ''
+        # tyre_rear_cap real,no data, 0
+        # tyre_rear_type text,no data, ''
         # notes text, no data, ''
-        cur.execute('insert or replace into vehicles values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [rec['vehicle_id'], rec['reg_no'], rec['make'], rec['model'], rec['year'], rec['purchase_price'], rec['purchase_date'], rec['fuel_cap'], rec['fuel_type'], rec['oil_cap'], rec['oil_type'], rec['tyre_cap'], rec['tyre_type'], rec['notes']])
+        cur.execute('insert or replace into vehicles values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [rec['vehicle_id'], rec['reg_no'], rec['make'], rec['model'], rec['year'], rec['purchase_price'], rec['purchase_date'], rec['fuel_cap'], rec['fuel_type'], rec['oil_cap'], rec['oil_type'], rec['tyre_front_cap'], rec['tyre_front_type'], rec['tyre_rear_cap'], rec['tyre_rear_type'], rec['notes']])
         conn.commit()
     elif tbl == 'service':
         # service_id integer, primary key and index
