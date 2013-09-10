@@ -356,3 +356,6 @@ class CLI:
     def help(self):
         '''Print help'''
         print('Insert Help Here')
+
+    def start(self):
+        self.main_menu()
