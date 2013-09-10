@@ -40,6 +40,7 @@ class CLI:
         if not service:
             service = FN.srec.copy()
             service['vehicle_id']=vehicle['vehicle_id']
+            service['date'] = FN.time_now()
 
         self.query('service', service)
         FN.update_service(service)
@@ -149,25 +150,23 @@ class CLI:
             if not processed:
                 print ('Invalid option [{0}]'.format(option))
 
-    def update_fuel(self, title, vehicle=None, rec=None):
+    def update_fuel(self, title, vehicle=None, record=None):
         '''
         Create or update a fuel record
         '''
         print('\n{} Fuel Record for {}:'.format(title, vehicle['reg_no']))
         last = None
 
-        # set reg for record
-        record['vehicle_id']=vehicle['vehicle_id']
-           
         # are we adding a new one or updating an old one?
         if (record == None):
             # adding new, so get the previous value.
             last = FN.last_fuel(vehicle)
             record = FN.frec.copy()
+            # set reg for record
             record['vehicle_id'] = vehicle['vehicle_id']
-        else:
-            record = rec
+            record['date'] = FN.time_now()
 
+        print(record)
         value = input('Date ({}):'.format(FN.to_date(record['date'])))
         if value:
             record['date'] = FN.to_seconds(value)

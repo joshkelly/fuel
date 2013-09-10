@@ -32,6 +32,9 @@ svg = '''
 </svg>
 '''
 
+def time_now():
+    return time.time()
+
 def to_date(secs):
     '''Convert seconds to date string'''
     return time.strftime("%Y/%m/%d", time.localtime(secs))
