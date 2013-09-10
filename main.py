@@ -5,6 +5,7 @@ import getopt, sys, datetime, sqlite3, string, time, math
 import dbi
 import functions as FN
 from cli import CLI
+from tkgui import TKGUI
 from operator import itemgetter
 
 debug = False
@@ -12,6 +13,7 @@ debug = False
 def usage():
     print('Usage: fuel.py [options]')
     print('-c, --cli use command line interface [default]')
+    print('-t, --tk use tkinter gui')
     print('-h, --help print this message and exit')
     print('-d, --debug turn on debug mode, extra output, no saving')
 
@@ -22,9 +24,9 @@ def main():
     show main menu
     '''
     global debug, gui
-    useCli = True
+    guiType = 0
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdc", ["help", "debug", "cli"])
+        opts, args = getopt.getopt(sys.argv[1:], "hdct", ["help", "debug", "cli", "tk"])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err) # will print something like "option -a not recognized"
@@ -36,7 +38,9 @@ def main():
         if o in ("-d", "--debug"):
             debug=True
         elif o in ("-c", "--cli"):
-            useCli = True
+            guiType = 0
+        elif o in ("-t", "--tk"):
+            guiType = 1
         elif o in ("-h", "--help"):
             usage()
             exit()
@@ -46,14 +50,16 @@ def main():
     if debug:
         print('#### DEBUG MODE ####')
 
-    if useCli:
+    if guiType == 0:
         gui = CLI()
+    elif guiType == 1:
+        gui = TKGUI()
 
     FN.load()
     for v in FN.vehicles:
         FN.fuel_graph(v)
     FN.index()
-    gui.main_menu() 
+    gui.start() 
 
 #call main
 if __name__ == "__main__":
