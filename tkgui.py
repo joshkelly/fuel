@@ -11,10 +11,16 @@ root = None
 class GUI(Frame):
 
     running = True;
+    currentVehicle=None
+    
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.pack()
-        self.createWidgets()
+        self.main_menu()
+
+    def setVehicle(self, v):
+        global currentVehicle
+        currentVehicle=v
 
     def createWidgets(self):
         global root
@@ -25,6 +31,24 @@ class GUI(Frame):
 
         self.QUIT = Button(self, text="QUIT", fg="red", command=root.destroy)
         self.QUIT.pack(side="bottom")
+        self.entrythingy = Entry()
+        self.entrythingy.pack()
+
+        # here is the application variable
+        self.contents = StringVar()
+        # set it to some value
+        self.contents.set("this is a variable")
+        # tell the entry widget to watch this variable
+        self.entrythingy["textvariable"] = self.contents
+
+        # and here we get a callback when the user hits return.
+        # we will have the program print out the value of the
+        # application variable when the user hits return
+        self.entrythingy.bind('<Key-Return>', self.print_contents)
+
+    def print_contents(self, event):
+        print("hi. contents of entry is now ---->",
+              self.contents.get())
 
     def say_hi(self):
         print("hi there, everyone!")
@@ -139,6 +163,7 @@ class GUI(Frame):
         '''
         Choose vehicle by reg
         '''
+
         while True:
             num = 1
             print('Choose Vehicle:')
@@ -308,71 +333,107 @@ class GUI(Frame):
             if not processed:
                 print('Invalid option [{0}]'.format(option))
 
+    def addFuelRecord(self):
+        print('add fuel record')
+        
+
     def main_menu(self):
         '''
         Print main menu
         '''
-        while self.running:
-            print('''\nFuel Economy and Service Records
-            1) Add Fuel Record
-            2) Edit Fuel Record
-            3) Add Service Record
-            4) Edit Service Record
-            5) Show Summary
-            6) Predict Range
-            7) Vehicle Management
-            8) Help
-            0) Quit
-            ''')
-            processed = False
-            option = None
-            option = input('Option? :')
+        global root
+        self.addFuelBtn = Button(self, text="Add Fuel Record", command=self.addFuelRecord)
+        self.addFuelBtn.pack(side="top")
 
-            # check option is numeric
-            if option and option.isnumeric():
-                processed = True
-                option = int(option)
+        self.addFuelBtn = Button(self, text="Edit Fuel Record", command=self.blank)
+        self.addFuelBtn.pack(side="top")
 
-                if option == 1:
-                    r = self.choose_vehicle()
-                    if r[0]:
-                        self.update_fuel('Add', r[1])
-                elif option == 2:
-                    r = self.choose_vehicle()
-                    if r[0]:
-                        self.choose_fuel(r[1])
-                elif option == 3:
-                    r = self.choose_vehicle()
-                    if r[0]:
-                        self.update_service('Add', r[1])
-                elif option == 4:
-                    r = self.choose_vehicle()
-                    if r[0]:
-                        self.choose_service(r[1])
-                elif option == 5:
-                    r = self.choose_vehicle()
-                    if r[0]:
-                        self.show_summary(r[1])
-                elif option == 6:
-                    r = self.choose_vehicle()
-                    if r[0]:
-                        self.predict(r[1])
-                elif option == 7:
-                    self.vehicle_menu()
-                elif option == 8:
-                    self.help()
-                elif option == 0:
-                    FN.exit()
-                    self.running=False
-                else:
-                    processed = False
+        self.addFuelBtn = Button(self, text="Add Service Record", command=self.blank)
+        self.addFuelBtn.pack(side="top")
 
-            if not processed:
-                print('Invalid option [{0}]'.format(option))
+        self.addFuelBtn = Button(self, text="Edit Service Record", command=self.blank)
+        self.addFuelBtn.pack(side="top")
 
+        self.addFuelBtn = Button(self, text="Show Summary", command=self.blank)
+        self.addFuelBtn.pack(side="top")
+
+        self.addFuelBtn = Button(self, text="Predict Range", command=self.blank)
+        self.addFuelBtn.pack(side="top")
+
+        self.addFuelBtn = Button(self, text="Vehicle Management", command=self.blank)
+        self.addFuelBtn.pack(side="top")
+
+        self.addFuelBtn = Button(self, text="Help", command=self.blank)
+        self.addFuelBtn.pack(side="top")
+
+        self.QUIT = Button(self, text="Quit", command=root.destroy)
+        self.QUIT.pack(side="bottom")
+
+#        while self.running:
+#            print('''\nFuel Economy and Service Records
+#            1) Add Fuel Record
+#            2) Edit Fuel Record
+#            3) Add Service Record
+#            4) Edit Service Record
+#            5) Show Summary
+#            6) Predict Range
+#            7) Vehicle Management
+#            8) Help
+#            0) Quit
+#            ''')
+#            processed = False
+#            option = None
+#            option = input('Option? :')
+#
+#            # check option is numeric
+#            if option and option.isnumeric():
+#                processed = True
+#                option = int(option)
+#
+#                if option == 1:
+#                    r = self.choose_vehicle()
+#                    if r[0]:
+#                        self.update_fuel('Add', r[1])
+#                elif option == 2:
+#                    r = self.choose_vehicle()
+#                    if r[0]:
+#                        self.choose_fuel(r[1])
+#                elif option == 3:
+#                    r = self.choose_vehicle()
+#                    if r[0]:
+#                        self.update_service('Add', r[1])
+#                elif option == 4:
+#                    r = self.choose_vehicle()
+#                    if r[0]:
+#                        self.choose_service(r[1])
+#                elif option == 5:
+#                    r = self.choose_vehicle()
+#                    if r[0]:
+#                        self.show_summary(r[1])
+#                elif option == 6:
+#                    r = self.choose_vehicle()
+#                    if r[0]:
+#                        self.predict(r[1])
+#                elif option == 7:
+#                    self.vehicle_menu()
+#                elif option == 8:
+#                    self.help()
+#                elif option == 0:
+#                    FN.exit()
+#                    self.running=False
+#                else:
+#                    processed = False
+#
+#            if not processed:
+#                print('Invalid option [{0}]'.format(option))
+
+
+    def blank(self):
+        tkMessageBox.showinfo("FESR: Blank", "Not implemented")
     def help(self):
         '''Print help'''
         print('Insert Help Here')
+        tkMessageBox.showinfo("FESR: Help", "Help goes here")
 
 class TKGUI:
     def __init__(self):
@@ -382,4 +443,6 @@ class TKGUI:
         global root
         root = Tk()
         myapp = GUI()
+        myapp.master.title("Fuel Economy and Service Records")
+        myapp.master.maxsize(1000, 400)
         myapp.mainloop()
