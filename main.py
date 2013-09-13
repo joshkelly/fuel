@@ -4,7 +4,7 @@ import pdb
 import getopt, sys, datetime, sqlite3, string, time, math
 import dbi
 import functions as FN
-from cli import CLI
+from cli.cli import CLI
 from tkgui import TKGUI
 from operator import itemgetter
 

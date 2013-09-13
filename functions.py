@@ -1,6 +1,5 @@
 import getopt, sys, datetime, sqlite3, string, time, math
 import dbi
-from cli import CLI
 from operator import itemgetter
 
 cur=None
