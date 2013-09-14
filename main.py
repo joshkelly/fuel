@@ -5,7 +5,7 @@ import getopt, sys, datetime, sqlite3, string, time, math
 import dbi
 import functions as FN
 from cli.cli import CLI
-from gtk.gui import GUI
+#from gtk.gui import GUI
 from operator import itemgetter
 
 debug = False
@@ -13,7 +13,7 @@ debug = False
 def usage():
     print('Usage: fuel.py [options]')
     print('-c, --cli use command line interface [default]')
-    print('-g, --gtk use gtk gui')
+    #print('-g, --gtk use gtk gui')
     print('-h, --help print this message and exit')
     print('-d, --debug turn on debug mode, extra output, no saving')
 
@@ -52,8 +52,8 @@ def main():
 
     if guiType == 0:
         gui = CLI()
-    elif guiType == 1:
-        gui = GUI()
+#    elif guiType == 1:
+#        gui = GUI()
 
     FN.load()
     for v in FN.vehicles:
