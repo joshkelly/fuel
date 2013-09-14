@@ -94,9 +94,9 @@ class CLI:
 
         while True:
             num=1
-            print('X) yyyy/mm/dd Odometer Trip Litres PPL Cost Mpg')
+            print('X) yyyy/mm/dd Odometer Trip Litres PPL Cost Mpg Type Notes')
             for r in recs:
-                print('{0}) {1} {2} {3} {4:.2f} {6:.2f} {7:.2f} {5:.2f}'.format(num, FN.to_date(r['date']), r['odo'], r['trip'], r['litres'], r['mpg'], r['ppl'], r['cost']))
+                print('{0}) {1} {2} {3} {4:.2f} {6:.2f} {7:.2f} {5:.2f} {8} {9}'.format(num, FN.to_date(r['date']), r['odo'], r['trip'], r['litres'], r['mpg'], r['ppl'], r['cost'], r['fuel_type'], r['notes']))
                 num = num +1
             print('0) Back')
 
@@ -198,6 +198,10 @@ class CLI:
         value = input('Notes ({}):'.format(record['notes']))
         if value:
             record['notes'] = value
+
+        value = input('Fuel Type ({}):'.format(record['fuel_type']))
+        if value:
+            record['fuel_type'] = value
 
         mpg = FN.update_fuel(vehicle, record)
 
