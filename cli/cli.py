@@ -5,12 +5,12 @@ Handles menus, user input and formats output.
 '''
 import string
 import functions as FN
+from cli.help import Help
 
 class CLI:
     running = True;
     def __init__(self):
         print('init cli')
-
 
     def query(self, tbl, record):
         '''
@@ -343,7 +343,8 @@ class CLI:
                 elif option == 7:
                     self.vehicle_menu()
                 elif option == 8:
-                    self.help()
+                    help = Help()
+                    help.helpMenu()
                 elif option == 0:
                     FN.exit()
                     self.running=False
@@ -352,10 +353,6 @@ class CLI:
 
             if not processed:
                 print('Invalid option [{0}]'.format(option))
-
-    def help(self):
-        '''Print help'''
-        print('Insert Help Here')
 
     def start(self):
         self.main_menu()
