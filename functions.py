@@ -193,31 +193,37 @@ def get_summary(vehicle):
     if no vehicle passed, prompt user to choose, calculate, save and display results
     if vehicle passed, calculate, save and return results
     '''
-    sum_rec = {
-        'mpg':{'avg':0.0, 'min':float('inf'), 'max':0.0},
-        'trip':{'avg':0.0, 'min':float('inf'), 'max':0.0, 'total':0.0},
-        'ppl':{'avg':0.0, 'min':float('inf'), 'max':0.0},
-        'cost':{'avg':0.0, 'min':float('inf'), 'max':0.0, 'total':0.0}
+    result = {
+        'mpg':{'avg':0.0, 'min':0.0, 'max':0.0},
+        'trip':{'avg':0.0, 'min':0.0, 'max':0.0, 'total':0.0},
+        'ppl':{'avg':0.0, 'min':0.0, 'max':0.0},
+        'cost':{'avg':0.0, 'min':0.0, 'max':0.0, 'total':0.0}
     }
 
     sql = "select min({0}) as min, max({0}) as max, avg({0}) as avg, sum({0}) as sum from fuel where vehicle_id='{1}'"
 
-    for s in sum_rec:
+    for s in result:
         cur.execute(sql.format(s, vehicle['vehicle_id']))
         recs = [dict(row) for row in cur]
-        sum_rec[s]['avg']=recs[0]['avg']
-        sum_rec[s]['min']=recs[0]['min']
-        sum_rec[s]['max']=recs[0]['max']
+        result[s]['avg']=recs[0]['avg']
+        result[s]['min']=recs[0]['min']
+        result[s]['max']=recs[0]['max']
         if s == 'trip' or s == 'cost':
-            sum_rec[s]['total']=recs[0]['sum']
+            result[s]['total']=recs[0]['sum']
 
-    sum_rec['reg_no']=vehicle['reg_no']
+    result['reg_no']=vehicle['reg_no']
     
     sql = "select sum(cost) as sum from service where vehicle_id='{0}'"
     cur.execute(sql.format(vehicle['vehicle_id']))
     recs = [dict(row) for row in cur]
-    sum_rec['service_cost'] = recs[0]['sum']
-    return sum_rec
+    result['service_cost'] = 0.0
+    if recs[0]['sum']:
+        result['service_cost'] = recs[0]['sum']
+    result['running_cost'] = result['service_cost'] + result['cost']['total']
+    result['total_cost'] = result['running_cost'] + vehicle['purchase_price']
+    result['rcpm'] = result['running_cost']/result['trip']['total'] 
+    result['tcpm'] = result['total_cost']/result['trip']['total'] 
+    return result
 
 def predict(vehicle):
     '''
