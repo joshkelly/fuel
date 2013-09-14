@@ -361,5 +361,36 @@ class CLI:
             if not processed:
                 print('Invalid option [{0}]'.format(option))
 
+    def helpMenu(self):
+        help=Help()
+        while True:
+            # build the menu from the topics list
+            menu = ''
+            for topic in help.topics:
+                menu += ('{}) {}\n'.format(help.topics.index(topic)+1, topic['item']))
+
+            print('''\nChoose Help Topic:\n{}0) Back'''.format(menu))
+
+            processed = False
+            option = None
+            option = input('Option? :')
+
+            # check option is numeric
+            if option and option.isnumeric():
+                processed = True
+                # convert option passed into topic index
+                index = int(option) - 1
+
+                if index == -1:
+                    break;
+                elif (index >= 0 and index < len(help.topics)):
+                    print(help.topics[index]['title'])
+                    print(help.topics[index]['text'].replace('|','\n'))
+                else:
+                    processed = False
+
+            if not processed:
+                print('Invalid option [{0}]'.format(option))
+
     def start(self):
         self.main_menu()

@@ -1,37 +1,39 @@
 class Help:
 
     topics = [
-        {'item':'Updating Fuel Records', 'title':'How to update fuel', 'text':'help me!'},
-        {'item':'Updating Service Records', 'title':'How to update service', 'text':'help me'},
-        {'item':'Vehicle Management', 'title':'How to manage vehicles.', 'text':'help me'},
+        {
+            'item':'Vehicle Management', 
+            'title':'Managing your vehicles.', 
+            'text':'Select the `Vehicle Management` option to add/edit/list and remove vehicles.'
+        },
+        {
+            'item':'Updating Fuel Records', 
+            'title':'How to add/edit fuel records.', 
+            'text':'Select `Add Fuel` to add a new record.|Choose a vehicle, then add details as requested.|To edit an existing record, select `Edit Record`.'
+        },
+        {
+            'item':'Updating Service Records', 
+            'title':'How to add/edit service records', 
+            'text':'Select `Add Service` to add a new record.|Choose a vehicle, then add details as requested.|To edit an existing record, select `Edit Service`.'
+        },
+        {
+            'item':'Summary and Prediction', 
+            'title':'Summary and Prediction', 
+            'text':'Select summary to see a break down of running costs, min/max/averages of vehicle data and costs per mile.|Select prediction for a range estimate of the selected vehicle.'
+
+        },
+        {
+            'item':'Graphs', 
+            'title':'Graphs', 
+            'text':'Each time a fuel record is added or updated, a graph is created. See `index.html`'
+        },
+        {
+            'item':'Data Storage', 
+            'title':'Data Storage', 
+            'text':'All data is store in a sqlite3 database file call `ldc_fuel.db`'
+        },
     ]
 
-    def helpMenu(self):
-        while True:
-            # build the menu from the topics list
-            menu = ''
-            for topic in self.topics:
-                menu += ('{}) {}\n'.format(self.topics.index(topic)+1, topic['item']))
+    def helpTopics(self):
+        return self.topics
 
-            print('''\nChoose Help Topic:\n{}0) Back'''.format(menu))
-
-            processed = False
-            option = None
-            option = input('Option? :')
-
-            # check option is numeric
-            if option and option.isnumeric():
-                processed = True
-                # convert option passed into topic index
-                index = int(option) - 1
-
-                if index == -1:
-                    break;
-                elif (index >= 0 and index < len(self.topics)):
-                    print(self.topics[index]['title'])
-                    print(self.topics[index]['text'])
-                else:
-                    processed = False
-
-            if not processed:
-                print('Invalid option [{0}]'.format(option))
