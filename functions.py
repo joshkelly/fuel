@@ -11,12 +11,12 @@ fuel = []
 summaries = []
 
 vrec = {'vehicle_id' : None, 'reg_no' :'', 'make' :'', 'model' :'', 'year' : 0, 'purchase_price' : 0, 'purchase_date' :'', 'fuel_cap' : 0, 'fuel_type' :'', 'oil_cap' : 0, 'oil_type' :'', 'tyre_front_cap' : 0, 'tyre_front_type' :'', 'tyre_rear_cap':'', 'tyre_rear_type':'', 'notes' :''}
-frec = {'fuel_id':None, 'vehicle_id':0, 'date':'', 'litres':0, 'ppl':0, 'trip':0, 'odo':0, 'cost':0, 'mpg':0, 'notes':''}
+frec = {'fuel_id':None, 'vehicle_id':0, 'date':'', 'litres':0, 'ppl':0, 'trip':0, 'odo':0, 'cost':0, 'mpg':0, 'notes':'', 'fuel_type':'U'}
 srec = {'service_id':None, 'vehicle_id':0, 'date':'', 'cost':0, 'odo':0, 'item':'', 'notes':''}
 
 forms={
     'vehicle':['reg_no', 'make', 'model', 'year', 'purchase_price', 'purchase_date', 'fuel_cap', 'fuel_type', 'oil_cap', 'oil_type', 'tyre_front_cap', 'tyre_rear_type', 'tyre_rear_cap', 'tyre_rear_type','notes'],
-    'fuel':['vehicle_id', 'date', 'litres', 'ppl', 'trip', 'odo', 'cost', 'notes'],
+    'fuel':['vehicle_id', 'date', 'litres', 'ppl', 'trip', 'odo', 'cost', 'notes', 'fuel_type'],
     'service':['date', 'cost', 'odo', 'item', 'notes']
 }
 
@@ -100,7 +100,7 @@ def save(tbl, rec):
         # cost real, calculate as (ppl * litres), store to 2 d.p.
         # mpg real, map to 'mpg'
         # notes text, map to 'notes'
-        cur.execute("insert or replace into fuel values (?,?,?,?,?,?,?,?,?,?)", [rec['fuel_id'], rec['vehicle_id'], rec['date'], rec['litres'], rec['ppl'], rec['trip'], rec['odo'], rec['cost'], rec['mpg'], rec['notes']])
+        cur.execute("insert or replace into fuel values (?,?,?,?,?,?,?,?,?,?,?)", [rec['fuel_id'], rec['vehicle_id'], rec['date'], rec['litres'], rec['ppl'], rec['trip'], rec['odo'], rec['cost'], rec['mpg'], rec['notes'], rec['fuel_type']])
         conn.commit()
     elif tbl == 'vehicles':
         # vehicle_id integer, no data, unique key
