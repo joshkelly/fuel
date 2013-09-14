@@ -278,7 +278,7 @@ class CLI:
                 elif option == 2:
                     r = self.choose_vehicle()
                     if r[0]:
-                        self.update_vehicle(r[1])
+                        self.update_vehicle('Edit', r[1])
                 elif option == 3:
                     self.list_vehicles()
                 elif option == 4:
