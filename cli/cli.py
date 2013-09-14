@@ -94,9 +94,9 @@ class CLI:
 
         while True:
             num=1
-            print('X) yyyy/mm/dd Odometer Trip Litres Mpg')
+            print('X) yyyy/mm/dd Odometer Trip Litres PPL Cost Mpg')
             for r in recs:
-                print('{0}) {1} {2} {3} {4:.2f} {5:.2f}'.format(num, FN.to_date(r['date']), r['odo'], r['trip'], r['litres'], r['mpg']))
+                print('{0}) {1} {2} {3} {4:.2f} {6:.2f} {7:.2f} {5:.2f}'.format(num, FN.to_date(r['date']), r['odo'], r['trip'], r['litres'], r['mpg'], r['ppl'], r['cost']))
                 num = num +1
             print('0) Back')
 
@@ -166,7 +166,6 @@ class CLI:
             record['vehicle_id'] = vehicle['vehicle_id']
             record['date'] = FN.time_now()
 
-        print(record)
         value = input('Date ({}):'.format(FN.to_date(record['date'])))
         if value:
             record['date'] = FN.to_seconds(value)
@@ -178,6 +177,10 @@ class CLI:
         value = input('Price per Litre ({}):'.format(record['ppl']))
         if value:
             record['ppl'] = float(value)
+
+        value = input('Cost ({}):'.format(record['cost']))
+        if value:
+            record['cost'] = float(value)
 
         value = input('Odometer ({}):'.format(record['odo']))
         if value:
@@ -221,10 +224,10 @@ class CLI:
         print('Total miles:\t\t {:.1f}'.format(summary['trip']['total']))
         print('Total Fuel cost:\t {:.2f}'.format(summary['cost']['total']))
         print('Total Service cost:\t {:.2f}'.format(summary['service_cost']))
-        print('Running cost:\t\t {:.2f}'.format(summary['cost']['total'] + summary['service_cost']))
-        print('Total cost:\t\t {:.2f}'.format(summary['cost']['total'] + summary['service_cost'] + vehicle['purchase_price']))
-        print('Running cost/mile:\t {:.2f}'.format((summary['cost']['total'] + summary['service_cost'])/summary['trip']['total']))
-        print('Total cost/mile:\t {:.2f}'.format((summary['cost']['total'] + summary['service_cost'] + vehicle['purchase_price'])/summary['trip']['total']))
+        print('Running cost:\t\t {:.2f}'.format(summary['running_cost']))
+        print('Total cost:\t\t {:.2f}'.format(summary['total_cost']))
+        print('Running cost/mile:\t {:.2f}'.format(summary['rcpm']))
+        print('Total cost/mile:\t {:.2f}'.format(summary['tcpm']))
        
     def update_vehicle(self, title, vehicle=None):
         '''
