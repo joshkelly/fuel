@@ -21,13 +21,13 @@ class CLI:
         form = FN.forms[tbl]
         for element in form:
             label = string.capwords(element.replace('_', ' '))
-            if element == 'date':
+            if element.find('date') != -1:
                 e = input('{1} ({0}):'.format(FN.to_date(record[element]), label))
             else:
                 e = input('{1} ({0}):'.format(record[element], label))
 
             if e:
-                if element == 'date':
+                if element.find('date') != -1:
                     record[element] = FN.to_date(e)
                 else:
                     record[element] = e
