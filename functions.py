@@ -207,9 +207,10 @@ def get_summary(vehicle):
 
     sum_rec['reg_no']=vehicle['reg_no']
     
-    sql = "select sum(cost) from service where vehicle_id='{0}'"
+    sql = "select sum(cost) as sum from service where vehicle_id='{0}'"
     cur.execute(sql.format(vehicle['vehicle_id']))
-    sum_rec['cost']
+    recs = [dict(row) for row in cur]
+    sum_rec['service_cost'] = recs[0]['sum']
     return sum_rec
 
 def predict(vehicle):
