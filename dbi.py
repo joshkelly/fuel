@@ -21,12 +21,13 @@ def create_fuel():
     cost real, cost of fill
     mpg real, calculated miles per gallon
     notes text, free text
+    fuel_type text, type of fuel used (S/U/D)
     '''
     #print('create fuel')
     global cur
-    cur.execute('''create table if not exists fuel (fuel_id integer, vehicle_id integer, date real, litres real, ppl real, trip real, odo integer, cost real, mpg real, notes text, primary key (fuel_id asc))''')
+    cur.execute('''create table if not exists fuel (fuel_id integer, vehicle_id integer, date real, litres real, ppl real, trip real, odo integer, cost real, mpg real, notes text, fuel_type text, primary key (fuel_id asc))''')
     cur.execute('''create unique index if not exists fuel_index on fuel (fuel_id)''')
-    cur.execute('''insert or replace into versions values (?,?)''', ['fuel', 2])
+    cur.execute('''insert or replace into versions values (?,?)''', ['fuel', 3])
 
 def create_vehicles():
     ''' 
