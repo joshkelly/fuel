@@ -145,6 +145,12 @@ def update_fuel(vehicle, record):
     # caclulate the mpg
     calc_mpg(record)
 
+    if record['cost'] != 0 or record['ppl'] != 0:
+        if record['cost'] == 0:
+            record['cost'] = record['ppl'] * record['litres']
+        elif record['ppl'] == 0:
+            record['ppl'] = record['cost'] / record['litres']
+
     # update database
     save('fuel', record)
 
