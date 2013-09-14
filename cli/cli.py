@@ -212,15 +212,19 @@ class CLI:
         '''
         summary = FN.get_summary(vehicle)
         print('\nSummary for {0}:'.format(vehicle['reg_no']))
+        print('Fuel:')
         print('Mpg  Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(summary['mpg']['min'], summary['mpg']['avg'], summary['mpg']['max']))
         print('Trip Min {:.1f}, Avg {:.1f}, Max {:.1f}'.format(summary['trip']['min'], summary['trip']['avg'], summary['trip']['max']))
         print('PPL  Min {:.3f}, Avg {:.3f}, Max {:.3f}'.format(summary['ppl']['min'], summary['ppl']['avg'], summary['ppl']['max']))
         print('Cost Min {:.2f}, Avg {:.2f}, Max {:.2f}'.format(summary['cost']['min'], summary['cost']['avg'], summary['cost']['max']))
+        print('Totals:')
         print('Total miles:\t\t {:.1f}'.format(summary['trip']['total']))
-        print('Running cost:\t\t {:.2f}'.format(summary['cost']['total']))
-        print('Total cost:\t\t {:.2f}'.format(summary['cost']['total'] + vehicle['purchase_price']))
-        print('Running cost/mile:\t {:.2f}'.format(summary['cost']['total']/summary['trip']['total']))
-        print('Total cost/mile:\t {:.2f}'.format((summary['cost']['total'] + vehicle['purchase_price'])/summary['trip']['total']))
+        print('Total Fuel cost:\t {:.2f}'.format(summary['cost']['total']))
+        print('Total Service cost:\t {:.2f}'.format(summary['service_cost']))
+        print('Running cost:\t\t {:.2f}'.format(summary['cost']['total'] + summary['service_cost']))
+        print('Total cost:\t\t {:.2f}'.format(summary['cost']['total'] + summary['service_cost'] + vehicle['purchase_price']))
+        print('Running cost/mile:\t {:.2f}'.format((summary['cost']['total'] + summary['service_cost'])/summary['trip']['total']))
+        print('Total cost/mile:\t {:.2f}'.format((summary['cost']['total'] + summary['service_cost'] + vehicle['purchase_price'])/summary['trip']['total']))
        
     def update_vehicle(self, title, vehicle=None):
         '''
