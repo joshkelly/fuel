@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import sys, sqlite3, json, mkdb, math, time
+import sys, sqlite3, json, dbi, math, time
 
 conn = None
 cur = None
@@ -9,9 +9,14 @@ vehicles = []
 fuel = []
 service = []
 
+def set_version(name, version):
+    global cur, conn
+    cur.execute("update versions set version=? where name=?", [name, version])
+    conn.commit()
+
 def get_version(name):
     global cur, versions
-    cur.execute("select version from versions where name=?", (name,))
+    cur.execute("select version from versions where name=?", [name])
     version = cur.fetchone()
     assert version != None
     return version[0]
@@ -24,21 +29,51 @@ def update_fuel():
     print('fuel ', version)
 
     try:
-        if version < 2:
+        target=2
+        if version < target:
             # convert date column to real (drop & re-create table)
             # convert data using strptime
             cur.execute('''select * from fuel''')
             rows = [dict(row) for row in cur]
 
             cur.execute('''drop table fuel''')
-            mkdb.create_fuel()
+            dbi.create_fuel()
 
             for r in rows:
                 tm = time.strptime(r['date'], "%Y/%m/%d")
                 r['date']=time.mktime(tm)
                 cur.execute("insert or replace into fuel values (?,?,?,?,?,?,?,?,?,?)", [r['fuel_id'], r['vehicle_id'], r['date'], r['litres'], r['ppl'], r['trip'], r['odo'], r['cost'], r['mpg'], r['notes']])
+
+        target = 3
+        if version < target:
+            # add column fuel_type string
+            cur.execute('''select * from fuel''')
+            rows = [dict(row) for row in cur]
+
+            cur.execute('''select * from vehicles''')
+            vehicles = [dict(row) for row in cur]
+            
+            cur.execute('''alter table fuel add column fuel_type text default "U"''')
+            for r in rows:
+                vehicle = None
+                for v in vehicles:
+                    if v['vehicle_id'] == r['vehicle_id']:
+                        vehicle=v
+                        break
+                vft = vehicle['fuel_type'].lower()
+                
+                ft = 'U'
+
+                if vft=='super unleaded':
+                    ft='S'
+                elif vft == 'diesel':
+                    ft = 'D'
+                
+                print('''update fuel set fuel_type={} where fuel_id={}''', ft, r['fuel_id'])
+                cur.execute('''update fuel set fuel_type=? where fuel_id=?''', [ft, r['fuel_id']])
+        set_version('fuel', target)
+
     except Exception as err:
-        print('Bad Value passed to menu')
         print(err)
         
 
@@ -57,7 +92,7 @@ def update_vehicles():
             rows = [dict(row) for row in cur]
 
             cur.execute('''drop table vehicles''')
-            mkdb.create_vehicles()
+            dbi.create_vehicles()
 
             for r in rows:
                 tm = time.strptime(r['purchase_date'], "%Y/%m/%d")
@@ -86,7 +121,7 @@ def update_service():
             rows = [dict(row) for row in cur]
 
             cur.execute('''drop table service''')
-            mkdb.create_service()
+            dbi.create_service()
 
             for r in rows:
                 tm = time.strptime(r['date'], "%Y/%m/%d")
@@ -99,7 +134,7 @@ def update_service():
 def main():
     global conn, cur
     # open/create db file
-    conn = mkdb.init()
+    conn = dbi.init()
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
@@ -107,6 +142,6 @@ def main():
     update_fuel()
     update_service()
 
-    mkdb.close()
+    dbi.close()
 if __name__ == "__main__":
     main()
