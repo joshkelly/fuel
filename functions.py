@@ -319,8 +319,8 @@ def ppl_graph():
     x_range = x_max - x_min
 
     # correct y axis
-    y_max = math.ceil(y_max/10) * 10
-    y_min = math.floor(y_min/10) * 10
+    y_max = math.ceil(y_max*1000) / 1000
+    y_min = math.floor(y_min*1000) / 1000
 
     y_range = y_max - y_min
 
@@ -328,22 +328,24 @@ def ppl_graph():
 
     # create ticks along axes
     tx_dist = x_scale / 10 # 10 ticks on the axis
-    ty_dist = y_scale / 5 # 10 ticks on the axis
+    ty_dist = y_scale / 10 # 10 ticks on the axis
     offset=50
     for i in range(num+1):
         #print(i, num)
         tx = i * tx_dist
-        ty = i * ty_dist
         x = tx + 50
         inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(x, 550, x, 560)
-        y = ty + 50
-        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(40, y, 50, y)
 
         tx/=x_scale
-        tx*=y_range
-        tx+=y_min
+        tx*=x_range
+        tx+=x_min
         inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" fill="black" stroke="none">{}</text>\n'.format(x, 575, to_date(tx))
 
+    # fixed to 10 ticks on y-axis
+    for i in range(11):
+        ty = i * ty_dist
+        y = ty + 50
+        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(40, y, 50, y)
         ty/=y_scale
         ty*=y_range
         ty=y_max-ty
@@ -352,7 +354,7 @@ def ppl_graph():
     path = None
     x=None
     y=None
-    points='<g id="points">'
+    points='<g id="diesel">'
     for r in d_recs:
         x=r['date']
         y=r['ppl']
@@ -377,6 +379,18 @@ def ppl_graph():
 
         y -= 5
         points += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['ppl'])
+
+    x += 15
+    y += 10
+    inner_svg += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">Diesel</text>'.format(x,y)
+    inner_svg += '<path d="{}" fill="none" stroke="black" stroke-width="0.5"/>'.format(path)
+    points+='</g>'
+    inner_svg+=points
+
+    path = None
+    x=None
+    y=None
+    points='<g id="unleaded">'
     for r in u_recs:
         x=r['date']
         y=r['ppl']
@@ -401,6 +415,18 @@ def ppl_graph():
 
         y -= 5
         points += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['ppl'])
+
+    x += 15
+    y += 10
+    inner_svg += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">Unleaded</text>'.format(x,y)
+    inner_svg += '<path d="{}" fill="none" stroke="darkgreen" stroke-width="0.5"/>'.format(path)
+    points+='</g>'
+    inner_svg+=points
+
+    path = None
+    x=None
+    y=None
+    points='<g id="super">'
     for r in s_recs:
         x=r['date']
         y=r['ppl']
@@ -425,6 +451,10 @@ def ppl_graph():
 
         y -= 5
         points += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['ppl'])
+
+    x += 15
+    y += 10
+    inner_svg += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">Super</text>'.format(x,y)
 
     inner_svg += '<path d="{}" fill="none" stroke="red" stroke-width="0.5"/>'.format(path)
     points+='</g>'
@@ -492,17 +522,19 @@ def fuel_graph(vehicle):
     for i in range(num+1):
         #print(i, num)
         tx = i * tx_dist
-        ty = i * ty_dist
         x = tx + 50
         inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(x, 550, x, 560)
-        y = ty + 50
-        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(40, y, 50, y)
+
 
         tx/=x_scale
         tx*=drange
         tx+=dmin
         inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" fill="black" stroke="none">{}</text>\n'.format(x, 575, to_date(tx))
 
+    for i in range(11):
+        ty = i * ty_dist
+        y = ty + 50
+        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(40, y, 50, y)
         ty/=y_scale
         ty*=mpg_range
         ty=mpg_max-ty
