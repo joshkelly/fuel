@@ -20,14 +20,23 @@ forms={
     'service':['date', 'cost', 'odo', 'item', 'notes']
 }
 
-scalex=700
-scaley=500
-svg = '''
+x_scale=700
+y_scale=500
+fuel_svg = '''
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="800" height="600">
 	<text x="400" y="25" text-anchor="middle" fill="black" stroke="none" font-weight='normal'>Fuel Economy for {0}</text>
 	<line stroke="black" x1="50" y1="550" x2="750" y2="550"/><!-- xaxis 700 wide-->
 	<line stroke="black" x1="50" y1="50"  x2="50"  y2="550"/><!-- yaxis 500 tall -->
     {1}
+</svg>
+'''
+
+ppl_svg = '''
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="800" height="600">
+	<text x="400" y="25" text-anchor="middle" fill="black" stroke="none" font-weight='normal'>Historic PPL</text>
+	<line stroke="black" x1="50" y1="550" x2="750" y2="550"/><!-- xaxis 700 wide-->
+	<line stroke="black" x1="50" y1="50"  x2="50"  y2="550"/><!-- yaxis 500 tall -->
+    {}
 </svg>
 '''
 
@@ -156,6 +165,7 @@ def update_fuel(vehicle, record):
 
     # generate graph
     fuel_graph(vehicle)
+    ppl_graph()
 
     return record['mpg']
 
@@ -267,6 +277,174 @@ def get_fuel(vehicle):
     recs = sorted(recs, key=itemgetter('date'))
     return recs
 
+def get_ppl():
+    cur.execute('select date, fuel_type, ppl from fuel order by date asc')
+    return [dict(row) for row in cur]
+
+def ppl_graph():
+    '''
+    For all fuel records, create a graph showing ppl over time
+    '''
+    ppl_recs = get_ppl()
+    if len(ppl_recs) == 0:
+        return
+
+    y_min=99999999
+    y_max = 0
+
+    # extract fuel for this vehicle, store in temporary
+    d_recs = []
+    s_recs = []
+    u_recs = []
+
+    num = 0
+    x_min=999999999999
+    x_max=0
+    drange = 0
+    for r in ppl_recs:
+        x_max = max(x_max, r['date'])
+        x_min = min(x_min, r['date'])
+        y_max = max(y_max, r['ppl'])
+        y_min = min(y_min, r['ppl'])
+
+        if r['fuel_type'] == 'D':
+            d_recs.append(r)
+        elif r['fuel_type'] == 'S':
+            s_recs.append(r)
+        elif r['fuel_type'] == 'U':
+            u_recs.append(r)
+        num = num + 1
+
+
+    x_range = x_max - x_min
+
+    # correct y axis
+    y_max = math.ceil(y_max/10) * 10
+    y_min = math.floor(y_min/10) * 10
+
+    y_range = y_max - y_min
+
+    inner_svg = ''
+
+    # create ticks along axes
+    tx_dist = x_scale / 10 # 10 ticks on the axis
+    ty_dist = y_scale / 5 # 10 ticks on the axis
+    offset=50
+    for i in range(num+1):
+        #print(i, num)
+        tx = i * tx_dist
+        ty = i * ty_dist
+        x = tx + 50
+        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(x, 550, x, 560)
+        y = ty + 50
+        inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(40, y, 50, y)
+
+        tx/=x_scale
+        tx*=y_range
+        tx+=y_min
+        inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" fill="black" stroke="none">{}</text>\n'.format(x, 575, to_date(tx))
+
+        ty/=y_scale
+        ty*=y_range
+        ty=y_max-ty
+        inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" fill="black" stroke="none">{}</text>\n'.format(40,y,ty)
+
+    path = None
+    x=None
+    y=None
+    points='<g id="points">'
+    for r in d_recs:
+        x=r['date']
+        y=r['ppl']
+
+        # generate x coordinate
+        x = (x_max - x) / x_range
+        x = x_scale - (x_scale * x)
+        x += 50
+
+        # generate y coordinate
+        y = (y_max - y) / y_range
+        y *= y_scale
+        y += 50
+
+        inner_svg += '<circle cx="{:.2f}" cy="{:.2f}" r="2" fill="black"/>'.format(x,y)
+
+        if path == None:
+            path = 'M{:.2f},{:.2f}'
+        else:
+            path += ' L{:.2f},{:.2f}'
+        path=path.format(x,y)
+
+        y -= 5
+        points += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['ppl'])
+    for r in u_recs:
+        x=r['date']
+        y=r['ppl']
+
+        # generate x coordinate
+        x = (x_max - x) / x_range
+        x = x_scale - (x_scale * x)
+        x += 50
+
+        # generate y coordinate
+        y = (y_max - y) / y_range
+        y *= y_scale
+        y += 50
+
+        inner_svg += '<circle cx="{:.2f}" cy="{:.2f}" r="2" fill="black"/>'.format(x,y)
+
+        if path == None:
+            path = 'M{:.2f},{:.2f}'
+        else:
+            path += ' L{:.2f},{:.2f}'
+        path=path.format(x,y)
+
+        y -= 5
+        points += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['ppl'])
+    for r in s_recs:
+        x=r['date']
+        y=r['ppl']
+
+        # generate x coordinate
+        x = (x_max - x) / x_range
+        x = x_scale - (x_scale * x)
+        x += 50
+
+        # generate y coordinate
+        y = (y_max - y) / y_range
+        y *= y_scale
+        y += 50
+
+        inner_svg += '<circle cx="{:.2f}" cy="{:.2f}" r="2" fill="black"/>'.format(x,y)
+
+        if path == None:
+            path = 'M{:.2f},{:.2f}'
+        else:
+            path += ' L{:.2f},{:.2f}'
+        path=path.format(x,y)
+
+        y -= 5
+        points += '<text x="{:.2f}" y="{:.2f}" text-anchor="middle" font-size="10" stroke="none" fill="black">{:.2f}</text>'.format(x,y,r['ppl'])
+
+    inner_svg += '<path d="{}" fill="none" stroke="red" stroke-width="0.5"/>'.format(path)
+    points+='</g>'
+    inner_svg+=points
+
+    # where does the average line go?
+#    y = y_max - y_avg
+#    y /= y_range
+#    y *= y_scale
+#    y += 50
+#    inner_svg += '<line x1="50" y1="{0}" x2="750" y2="{0}" stroke="grey"/>\n'.format(y)
+#    inner_svg += '<text x="755" y="{}" dominant-baseline="central" font-size="10" stroke="none" fill="blue">Avg. {:.2f}</text>'.format(y,mpg_avg)
+
+    #print(inner_svg)
+    svg_fname = 'ppl.svg'
+    f = open(svg_fname, 'w')
+    f.write(ppl_svg.format(inner_svg)+'\n')
+    f.close()
+    print('File at ',svg_fname)
+
 def fuel_graph(vehicle):
     '''
     For a vehicle, create an SVG graph showing the MPG over time.
@@ -308,8 +486,8 @@ def fuel_graph(vehicle):
     inner_svg = ''
 
     # create ticks along axes
-    tx_dist = scalex / 10 # 10 ticks on the axis
-    ty_dist = scaley / 10 # 10 ticks on the axis
+    tx_dist = x_scale / 10 # 10 ticks on the axis
+    ty_dist = y_scale / 10 # 10 ticks on the axis
     offset=50
     for i in range(num+1):
         #print(i, num)
@@ -320,12 +498,12 @@ def fuel_graph(vehicle):
         y = ty + 50
         inner_svg += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="grey"/>\n'.format(40, y, 50, y)
 
-        tx/=scalex
+        tx/=x_scale
         tx*=drange
         tx+=dmin
         inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" fill="black" stroke="none">{}</text>\n'.format(x, 575, to_date(tx))
 
-        ty/=scaley
+        ty/=y_scale
         ty*=mpg_range
         ty=mpg_max-ty
         inner_svg += '<text x="{}" y="{}" text-anchor="middle" font-size="8" fill="black" stroke="none">{}</text>\n'.format(40,y,ty)
@@ -343,12 +521,12 @@ def fuel_graph(vehicle):
 
         # generate x coordinate
         x = (dmax - x) / drange
-        x = scalex - (scalex * x)
+        x = x_scale - (x_scale * x)
         x += 50
 
         # generate y coordinate
         y = (mpg_max - y) / mpg_range
-        y *= scaley
+        y *= y_scale
         y += 50
 
         inner_svg += '<circle cx="{:.2f}" cy="{:.2f}" r="2" fill="black"/>'.format(x,y)
@@ -369,7 +547,7 @@ def fuel_graph(vehicle):
     # where does the average line go?
     y = mpg_max - mpg_avg
     y /= mpg_range
-    y *= scaley
+    y *= y_scale
     y += 50
     inner_svg += '<line x1="50" y1="{0}" x2="750" y2="{0}" stroke="grey"/>\n'.format(y)
     inner_svg += '<text x="755" y="{}" dominant-baseline="central" font-size="10" stroke="none" fill="blue">Avg. {:.2f}</text>'.format(y,mpg_avg)
@@ -377,7 +555,7 @@ def fuel_graph(vehicle):
     #print(inner_svg)
     svg_fname = 'mpg-{}.svg'.format(vehicle['reg_no'])
     f = open(svg_fname, 'w')
-    f.write(svg.format(vehicle['reg_no'], inner_svg)+'\n')
+    f.write(fuel_svg.format(vehicle['reg_no'], inner_svg)+'\n')
     f.close()
     print('File at ',svg_fname)
 
@@ -443,7 +621,7 @@ def index():
     </body>
     </html>
     '''
-    links = ''
+    links = '''<a href="ppl.svg">Historic PPL</a><p/>'''
     link = '''<a href="mpg-{0}.svg">Graph for {0}</a><p/>'''
     for v in vehicles:
         links+=link.format(v['reg_no'])

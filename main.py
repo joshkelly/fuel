@@ -58,6 +58,7 @@ def main():
     FN.load()
     for v in FN.vehicles:
         FN.fuel_graph(v)
+    FN.ppl_graph()
     FN.index()
     gui.start() 
 
