@@ -28,7 +28,7 @@ class CLI:
 
             if e:
                 if element.find('date') != -1:
-                    record[element] = FN.to_date(e)
+                    record[element] = FN.to_seconds(e)
                 else:
                     record[element] = e
 
