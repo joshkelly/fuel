@@ -4,7 +4,7 @@ var fs = require('fs');
 var sqlite3 = require('sqlite3');
 
 var db = new sqlite3.Database("ldc_fuel.db");
-var vehicles = [];
+var json = {'jalopynomos':{'vehicles':[], 'fuel':[], 'service':[]}};
 
 function fuelTypes(t) {
 	var val = 'X';
@@ -46,21 +46,37 @@ db.serialize(function () {
 			v.id = r.vehicle_id;
 			v.regNo = r.reg_no;
 			v.make = r.make;
-			v.model = r.model;
+			v.type = r.model;
 			v.year = r.year;
 			v.purchase = {
 				date : r.purchase_date,
 				price : r.purchase_price
-			},
+			};
 			v.fuel = {
 				capacity : r.fuel_cap,
 				type : fuelTypes(r.fuel_type)
-			}
+			};
+			v.oil = {
+				capacity : r.oil_cap,
+				type : r.oil_type
+			};
+			v.tyres = {
+				front : {
+					capacity : r.tyre_front_cap,
+					type : r.tyre_front_type
+				},
+				rear : {
+					capacity : r.tyre_rear_cap,
+					type : r.tyre_rear_type
+				}
+			};
+			v.notes = r.notes;
+
 			
-			vehicles.push(v);
+			json.jalopynomos.vehicles.push(v);
 		}
 
-		logThis(vehicles);
+		logThis(json);
 
 
 	});
