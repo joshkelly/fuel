@@ -5,6 +5,8 @@ var sqlite3 = require('sqlite3');
 
 var db = new sqlite3.Database("ldc_fuel.db");
 var json = {'jalopynomos':{'vehicles':[], 'fuel':[], 'service':[]}};
+var beautify = require('js-beautify').js_beautify
+
 
 function fuelTypes(t) {
 	var val = 'X';
@@ -26,59 +28,94 @@ function fuelTypes(t) {
 }
 
 function logThis(data){
-	for (var i=0; i<data.length; i++){
-		console.log(data[i])
-	}
-	var vstr = JSON.stringify(data);
+	var data = JSON.stringify(data);
+	data = beautify(data, { indent_size: 2 });
 
-	fs.writeFile('fuel.json', vstr, function (err) {
+	fs.writeFile('fuel.json', data, function (err) {
 	if (err) throw err;
   		console.log('It\'s saved!');
 	});
 }
 
+function findVehicle(id){
+	var v =null,
+		result = null;
+	for (var i =0; i < json.jalopynomos.vehicles.length; i++){
+		v = json.jalopynomos.vehicles[i];
+		if (v.id === id){
+			result = v;
+			break;
+		}
+	}
+	return result;
+}
+
+function getVehicle(rec){
+		var v = {};
+		v.id = rec.vehicle_id;
+		v.regNo = rec.reg_no;
+		v.make = rec.make;
+		v.type = rec.model;
+		v.year = rec.year;
+		v.purchase = {
+			date : rec.purchase_date,
+			price : rec.purchase_price
+		};
+		v.fuel = {
+			capacity : rec.fuel_cap,
+			type : fuelTypes(rec.fuel_type)
+		};
+		v.oil = {
+			capacity : rec.oil_cap,
+			type : rec.oil_type
+		};
+		v.tyres = {
+			front : {
+				capacity : rec.tyre_front_cap,
+				type : rec.tyre_front_type
+			},
+			rear : {
+				capacity : rec.tyre_rear_cap,
+				type : rec.tyre_rear_type
+			}
+		};
+		v.notes = rec.notes;
+		v.fuelIDs = [];
+		v.serviceIDs = [];
+
+		json.jalopynomos.vehicles.push(v);
+}
+
+function getFuel(rec){
+	var v = findVehicle(rec.vehicle_id);
+	v.fuelIDs.push(rec.fuel_id);
+	rec.id = rec.fuel_id
+	delete rec.fuel_id;
+	delete rec.vehicle_id;
+	json.jalopynomos.fuel.push(rec);
+}
+
+function getService(rec){
+	var v = findVehicle(rec.vehicle_id);
+	v.serviceIDs.push(rec.service_id);
+	rec.id = rec.service_id
+	delete rec.service_id;
+	delete rec.vehicle_id;
+	json.jalopynomos.fuel.push(rec);
+}
 
 db.serialize(function () {
-	db.all('select * from vehicles', function(err, recs){
-		for (var i=0; i<recs.length; i++){
-			var r = recs[i];
-			var v = {};
-			v.id = r.vehicle_id;
-			v.regNo = r.reg_no;
-			v.make = r.make;
-			v.type = r.model;
-			v.year = r.year;
-			v.purchase = {
-				date : r.purchase_date,
-				price : r.purchase_price
-			};
-			v.fuel = {
-				capacity : r.fuel_cap,
-				type : fuelTypes(r.fuel_type)
-			};
-			v.oil = {
-				capacity : r.oil_cap,
-				type : r.oil_type
-			};
-			v.tyres = {
-				front : {
-					capacity : r.tyre_front_cap,
-					type : r.tyre_front_type
-				},
-				rear : {
-					capacity : r.tyre_rear_cap,
-					type : r.tyre_rear_type
-				}
-			};
-			v.notes = r.notes;
-
-			
-			json.jalopynomos.vehicles.push(v);
-		}
-
-		logThis(json);
-
-
+	db.each('select * from vehicles', function(err, rec){
+		getVehicle(rec);
+	}, function () {
+		db.each('select * from fuel', function (err, rec){
+			getFuel(rec);
+		}, function() {
+			db.each('select * from service', function (err, rec){
+				getService(rec);
+			}, function () {
+				logThis(json);
+			});
+		});
 	});
-
 });
