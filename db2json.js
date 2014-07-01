@@ -101,7 +101,7 @@ function getService(rec){
 	rec.id = rec.service_id
 	delete rec.service_id;
 	delete rec.vehicle_id;
-	json.jalopynomos.fuel.push(rec);
+	json.jalopynomos.service.push(rec);
 }
 
 db.serialize(function () {
