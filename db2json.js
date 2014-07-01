@@ -89,9 +89,11 @@ function getVehicle(rec){
 function getFuel(rec){
 	var v = findVehicle(rec.vehicle_id);
 	v.fuelIDs.push(rec.fuel_id);
-	rec.id = rec.fuel_id
+	rec.id = rec.fuel_id;
+	rec.type = rec.fuel_type;
 	delete rec.fuel_id;
 	delete rec.vehicle_id;
+	delete rec.fuel_type;
 	json.jalopynomos.fuel.push(rec);
 }
 
